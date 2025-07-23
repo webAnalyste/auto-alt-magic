@@ -66,6 +66,9 @@ function aam_core_process_post($post_ID, $post) {
     $lang = get_locale();
     $type_post = $post->post_type;
 
+    // Récupérer le mode de remplacement ALT (meta post)
+    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
+
     // Parcours toutes les images du contenu
     foreach ($imgs as $img) {
         $src = $img->getAttribute('src');
@@ -111,8 +114,28 @@ function aam_core_process_post($post_ID, $post) {
         if ($prefix) $alt_new = $prefix . ' ' . $alt_new;
         if ($suffix) $alt_new = $alt_new . ' ' . $suffix;
         $alt_new = trim($alt_new);
-        // Ciblage : remplacer que si alt vide OU forcer selon option
-        if (($only_empty && !$alt) || $replace_all || ($is_featured && !empty($featured_alt))) {
+        // Ciblage avancé selon le mode de remplacement ALT
+        $do_replace = false;
+        if ($is_featured && !empty($featured_alt)) {
+            $do_replace = true; // Toujours remplacer pour l'image à la une si champ manuel
+        } else {
+            switch ($alt_replace_mode) {
+                case 'none':
+                    $do_replace = false;
+                    break;
+                case 'all':
+                    $do_replace = true;
+                    break;
+                case 'short':
+                    $do_replace = (strlen(trim($alt)) < 30);
+                    break;
+                case 'empty':
+                default:
+                    $do_replace = (trim($alt) === '');
+                    break;
+            }
+        }
+        if ($do_replace) {
             $img->setAttribute('alt', esc_attr($alt_new));
             // Duplication dans title si activé
             if ($title_sync) {

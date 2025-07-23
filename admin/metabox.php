@@ -7,45 +7,32 @@ add_action('add_meta_boxes', function() {
     }
 });
 
+require_once AAM_PLUGIN_DIR . 'includes/aam_get_default_featured_alt.php';
 function aam_magic_metabox($post) {
     // Sécurité nonce
     wp_nonce_field('aam_magic_box_save', 'aam_magic_box_nonce');
-    // Valeurs actuelles
-    $focus_keyword = get_post_meta($post->ID, 'aam_focus_keyword', true);
+    // Valeur actuelle du ALT manuel (champ unique)
     $featured_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
-    // Options globales (fallback)
-    $method = get_post_meta($post->ID, 'aam_method', true) ?: get_option('aam_method', 'titre');
-    $text_libre = get_post_meta($post->ID, 'aam_text_libre', true) ?: get_option('aam_text_libre', '');
-    $prefix = get_post_meta($post->ID, 'aam_prefix', true) ?: get_option('aam_prefix', '');
-    $suffix = get_post_meta($post->ID, 'aam_suffix', true) ?: get_option('aam_suffix', '');
-    $only_empty = get_post_meta($post->ID, 'aam_only_empty_alt', true) ?: get_option('aam_only_empty_alt', 0);
-    $replace_all = get_post_meta($post->ID, 'aam_replace_all_alt', true) ?: get_option('aam_replace_all_alt', 0);
-    $title_sync = get_post_meta($post->ID, 'aam_option_title_sync', true) ?: get_option('aam_option_title_sync', 1);
-    // Affichage UI
-    echo '<p><strong>' . __('Mot-clé principal', 'auto-alt-magic') . '</strong><br />';
-    echo '<input type="text" name="aam_focus_keyword" value="' . esc_attr($focus_keyword) . '" style="width:100%" placeholder="Ex : tente randonnée" /></p>';
-    echo '<p><strong>' . __('ALT manuel de l’image à la une', 'auto-alt-magic') . '</strong><br />';
-    echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT personnalisé pour cette image à la une" /></p>';
-    echo '<hr />';
-    echo '<p><strong>' . __('Paramètres contextuels', 'auto-alt-magic') . '</strong></p>';
-    // Méthode
-    echo '<label>' . __('Méthode de génération ALT :', 'auto-alt-magic') . '</label><br />';
-    echo '<select name="aam_method">
-        <option value="titre"' . selected($method, 'titre', false) . '>Titre du post</option>
-        <option value="nom_fichier"' . selected($method, 'nom_fichier', false) . '>Nom du fichier image</option>
-        <option value="texte_libre"' . selected($method, 'texte_libre', false) . '>Texte libre personnalisé</option>
-    </select><br />';
-    // Texte libre
-    echo '<textarea name="aam_text_libre" style="width:100%;min-height:40px;" placeholder="Ex : Photo de {{titre}} - {{mot_cle}}">' . esc_textarea($text_libre) . '</textarea>';
-    // Préfixe/suffixe
-    echo '<input type="text" name="aam_prefix" value="' . esc_attr($prefix) . '" placeholder="Préfixe ALT" style="width:49%" /> ';
-    echo '<input type="text" name="aam_suffix" value="' . esc_attr($suffix) . '" placeholder="Suffixe ALT" style="width:49%" />';
-    // Ciblage
-    echo '<p><label><input type="checkbox" name="aam_only_empty_alt" value="1"' . checked($only_empty, 1, false) . ' /> ' . __('Traiter uniquement les images sans alt', 'auto-alt-magic') . '</label><br />';
-    echo '<label><input type="checkbox" name="aam_replace_all_alt" value="1"' . checked($replace_all, 1, false) . ' /> ' . __('Traiter toutes les images (remplacer alt existant)', 'auto-alt-magic') . '</label></p>';
-    // Duplication ALT->TITLE
-    echo '<p><label><input type="checkbox" name="aam_option_title_sync" value="1"' . checked($title_sync, 1, false) . ' /> ' . __('Copier automatiquement le alt dans title si title absent', 'auto-alt-magic') . '</label></p>';
-    echo '<p class="description">' . __('Toutes ces options sont contextuelles à ce contenu. Elles surchargent les réglages globaux pour ce post/page/produit.', 'auto-alt-magic') . '</p>';
+    // Valeur par défaut (template global du post type)
+    $default_alt = aam_get_default_featured_alt($post);
+    // Si pas de valeur manuelle, pré-remplir avec la valeur globale
+    if (empty($featured_alt)) {
+        $featured_alt = $default_alt;
+    }
+    echo '<p><strong>' . __('ALT de l’image à la une', 'auto-alt-magic') . '</strong><br />';
+    echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT généré automatiquement selon le type de contenu" /></p>';
+    echo '<p class="description">' . __('Ce champ est généré automatiquement selon les réglages globaux du type de contenu, mais peut être écrasé ici par un texte libre (prioritaire).', 'auto-alt-magic') . '</p>';
+
+    // Mode de remplacement ALT
+    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
+    echo '<p><strong>' . __('Remplacement des attributs ALT', 'auto-alt-magic') . '</strong><br />';
+    echo '<select name="aam_alt_replace_mode" style="width:100%">';
+    echo '<option value="none"' . selected($alt_replace_mode, 'none', false) . '>' . __('Ne rien remplacer (laisser ALT existant)', 'auto-alt-magic') . '</option>';
+    echo '<option value="empty"' . selected($alt_replace_mode, 'empty', false) . '>' . __('Remplacer si ALT vide', 'auto-alt-magic') . '</option>';
+    echo '<option value="all"' . selected($alt_replace_mode, 'all', false) . '>' . __('Remplacer tous les ALT', 'auto-alt-magic') . '</option>';
+    echo '<option value="short"' . selected($alt_replace_mode, 'short', false) . '>' . __('Remplacer si ALT < 30 caractères', 'auto-alt-magic') . '</option>';
+    echo '</select></p>';
+    echo '<p class="description">' . __('Ce réglage contrôle quand le plugin remplace les attributs ALT dans le contenu. "< 30 caractères" est utile pour corriger les ALT trop courts générés par d’autres plugins ou imports.', 'auto-alt-magic') . '</p>';
 }
 
 add_action('save_post', function($post_id) {
@@ -63,7 +50,8 @@ add_action('save_post', function($post_id) {
         'aam_suffix',
         'aam_only_empty_alt',
         'aam_replace_all_alt',
-        'aam_option_title_sync'
+        'aam_option_title_sync',
+        'aam_alt_replace_mode'
     ];
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
