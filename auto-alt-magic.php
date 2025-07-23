@@ -20,6 +20,7 @@ if (!defined('AAM_PLUGIN_URL'))
 // Chargement du cœur du plugin
 require_once AAM_PLUGIN_DIR . 'includes/core.php';
 require_once AAM_PLUGIN_DIR . 'includes/plans.php';
+require_once AAM_PLUGIN_DIR . 'includes/settings.php';
 
 // Hooks d'activation/désactivation
 register_activation_hook(__FILE__, 'aam_activate');
