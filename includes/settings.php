@@ -26,6 +26,10 @@ add_action('admin_init', function() {
     register_setting('aam_settings_group', 'aam_method');
     register_setting('aam_settings_group', 'aam_text_libre');
     register_setting('aam_settings_group', 'aam_option_title_sync');
+    register_setting('aam_settings_group', 'aam_only_empty_alt');
+    register_setting('aam_settings_group', 'aam_replace_all_alt');
+    register_setting('aam_settings_group', 'aam_prefix');
+    register_setting('aam_settings_group', 'aam_suffix');
 
     // Sauvegarde sécurisée de la clé OpenAI
     add_action('pre_update_option_aam_openai_api_key', function($new, $old) {
@@ -37,6 +41,11 @@ add_action('admin_init', function() {
         return sanitize_text_field($new);
     }, 10, 2);
     register_setting('aam_settings_group', 'aam_openai_api_key');
+    // Enregistrement sécurisé des nouvelles options
+    register_setting('aam_settings_group', 'aam_only_empty_alt');
+    register_setting('aam_settings_group', 'aam_replace_all_alt');
+    register_setting('aam_settings_group', 'aam_prefix');
+    register_setting('aam_settings_group', 'aam_suffix');
 });
 
 function aam_settings_page_render() {
@@ -78,6 +87,28 @@ function aam_settings_page_render() {
                         <small>Jamais stockée ni affichée en clair. Usage backend uniquement.</small>
                     </td>
                 </tr>
+            <!-- Options de ciblage -->
+            <tr valign="top">
+                <th scope="row">Ciblage des images</th>
+                <td>
+                    <label><input type="checkbox" name="aam_only_empty_alt" value="1" <?php checked(get_option('aam_only_empty_alt'), 1); ?> /> Traiter uniquement les images sans alt</label><br />
+                    <label><input type="checkbox" name="aam_replace_all_alt" value="1" <?php checked(get_option('aam_replace_all_alt'), 1); ?> /> Traiter toutes les images (remplacer alt existant)</label>
+                </td>
+            </tr>
+            <!-- Préfixe/Suffixe -->
+            <tr valign="top">
+                <th scope="row">Préfixe ALT</th>
+                <td><input type="text" name="aam_prefix" value="<?php echo esc_attr(get_option('aam_prefix', '')); ?>" placeholder="Ex : Photo de " style="width: 200px;" /></td>
+            </tr>
+            <tr valign="top">
+                <th scope="row">Suffixe ALT</th>
+                <td><input type="text" name="aam_suffix" value="<?php echo esc_attr(get_option('aam_suffix', '')); ?>" placeholder="Ex : - boutique" style="width: 200px;" /></td>
+            </tr>
+            <!-- Duplication ALT->TITLE -->
+            <tr valign="top">
+                <th scope="row">Attribut title</th>
+                <td><label><input type="checkbox" name="aam_option_title_sync" value="1" <?php checked(get_option('aam_option_title_sync'), 1); ?> /> Copier automatiquement le alt dans title si title absent</label></td>
+            </tr>
             </table>
             <?php submit_button(); ?>
         </form>
