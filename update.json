@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "download_url": "https://github.com/webAnalyste/auto-alt-magic/releases/download/v1.0.0/auto-alt-magic-1.0.0.zip",
-  "changelog": "Première version stable : injection ALT/TITLE contextuel, metabox unique, réglages par type de contenu, sécurité, versioning."
+  "version": "1.0.1",
+  "download_url": "https://github.com/webAnalyste/auto-alt-magic/releases/download/v1.0.1/auto-alt-magic-1.0.1.zip",
+  "changelog": "Correctif UX : options de ciblage mutuellement exclusives, stabilité accrue."
 }
