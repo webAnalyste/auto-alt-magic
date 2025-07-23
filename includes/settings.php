@@ -49,6 +49,96 @@ add_action('admin_init', function() {
 });
 
 function aam_settings_page_render() {
+    // Liste dynamique des types de contenu publics
+    $post_types = get_post_types(['public' => true], 'objects');
+    // Récupération des réglages par type
+    $all_settings = [];
+    foreach ($post_types as $type => $obj) {
+        $all_settings[$type] = get_option('aam_settings_' . $type, []);
+    }
+    // Liste des paramètres supportés
+    $params = [
+        'method' => ['label' => __('Méthode de génération ALT', 'auto-alt-magic'), 'type' => 'select', 'choices' => [
+            'titre' => __('Titre du post', 'auto-alt-magic'),
+            'nom_fichier' => __('Nom du fichier image', 'auto-alt-magic'),
+            'texte_libre' => __('Texte libre (avec balises)', 'auto-alt-magic'),
+        ]],
+        'text_libre' => ['label' => __('Texte libre', 'auto-alt-magic'), 'type' => 'text'],
+        'option_title_sync' => ['label' => __('Dupliquer ALT vers TITLE si manquant', 'auto-alt-magic'), 'type' => 'checkbox'],
+        'only_empty_alt' => ['label' => __('Traiter uniquement les images sans alt', 'auto-alt-magic'), 'type' => 'checkbox'],
+        'replace_all_alt' => ['label' => __('Traiter toutes les images (remplacer alt existant)', 'auto-alt-magic'), 'type' => 'checkbox'],
+        'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text'],
+        'suffix' => ['label' => __('Suffixe ALT', 'auto-alt-magic'), 'type' => 'text'],
+    };
+    // Gestion de la soumission du formulaire
+    if (isset($_POST['aam_save_settings']) && check_admin_referer('aam_settings_save', 'aam_settings_nonce')) {
+        foreach ($post_types as $type => $obj) {
+            $save = [];
+            foreach ($params as $key => $def) {
+                if ($def['type'] === 'checkbox') {
+                    $save[$key] = isset($_POST['aam'][$type][$key]) ? 1 : 0;
+                } else {
+                    $save[$key] = isset($_POST['aam'][$type][$key]) ? sanitize_text_field($_POST['aam'][$type][$key]) : '';
+                }
+            }
+            update_option('aam_settings_' . $type, $save);
+            $all_settings[$type] = $save;
+        }
+        echo '<div class="notice notice-success is-dismissible"><p>' . __('Réglages enregistrés.', 'auto-alt-magic') . '</p></div>';
+    }
+    ?>
+    <div class="wrap aam-settings-tabs">
+        <h1><?php _e('Réglages Auto ALT Magic', 'auto-alt-magic'); ?></h1>
+        <form method="post">
+            <?php wp_nonce_field('aam_settings_save', 'aam_settings_nonce'); ?>
+            <h2 class="nav-tab-wrapper">
+                <?php $first = true; foreach ($post_types as $type => $obj): ?>
+                    <a href="#aam-tab-<?php echo esc_attr($type); ?>" class="nav-tab<?php if ($first) echo ' nav-tab-active'; ?>" onclick="event.preventDefault(); aamShowTab('<?php echo esc_attr($type); ?>');"><?php echo esc_html($obj->labels->singular_name); ?></a>
+                <?php $first = false; endforeach; ?>
+            </h2>
+            <?php $first = true; foreach ($post_types as $type => $obj): ?>
+                <div id="aam-tab-<?php echo esc_attr($type); ?>" class="aam-tab-content" style="<?php if (!$first) echo 'display:none;'; ?>margin-top:20px;">
+                    <h2><?php echo esc_html($obj->labels->singular_name); ?></h2>
+                    <table class="form-table">
+                        <?php foreach ($params as $key => $def): ?>
+                        <tr valign="top">
+                            <th scope="row"><?php echo esc_html($def['label']); ?></th>
+                            <td>
+                                <?php if ($def['type'] === 'select'): ?>
+                                    <select name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]">
+                                        <?php foreach ($def['choices'] as $val => $lab): ?>
+                                            <option value="<?php echo esc_attr($val); ?>" <?php selected(($all_settings[$type][$key] ?? '') == $val); ?>><?php echo esc_html($lab); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                <?php elseif ($def['type'] === 'checkbox'): ?>
+                                    <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> />
+                                <?php else: ?>
+                                    <input type="text" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($all_settings[$type][$key] ?? ''); ?>" style="width:100%" />
+                                <?php endif; ?>
+                                <?php if ($key === 'text_libre'): ?><br><small><?php _e('Balises supportées', 'auto-alt-magic'); ?> : {{mot_cle}}, {{titre}}, {{nom_image}}, {{lang}}, {{type_post}}</small><?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </table>
+                </div>
+            <?php $first = false; endforeach; ?>
+            <p><input type="submit" class="button-primary" name="aam_save_settings" value="<?php esc_attr_e('Enregistrer les réglages', 'auto-alt-magic'); ?>" /></p>
+        </form>
+    </div>
+    <script>
+    function aamShowTab(type) {
+        document.querySelectorAll('.aam-tab-content').forEach(function(tab){tab.style.display='none';});
+        document.querySelectorAll('.nav-tab').forEach(function(tab){tab.classList.remove('nav-tab-active');});
+        document.getElementById('aam-tab-'+type).style.display='block';
+        document.querySelector('a[href="#aam-tab-'+type+'"]').classList.add('nav-tab-active');
+    }
+    </script>
+    <style>
+    .aam-settings-tabs .nav-tab-wrapper {margin-bottom:0;}
+    .aam-tab-content {background:#fff; border:1px solid #ccd0d4; border-top:none; padding:20px;}
+    </style>
+    <?php
+}
     ?>
     <div class="wrap">
         <h1><?php _e('Réglages Auto ALT Magic', 'auto-alt-magic'); ?></h1>
