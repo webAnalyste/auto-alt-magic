@@ -1,0 +1,47 @@
+name: Build & Publish Plugin Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Build plugin zip
+        run: bash ./tools/build-plugin-zip.sh
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Update update.json
+        run: |
+          jq '.version = "${{ env.VERSION }}" | .download_url = "https://github.com/${{ github.repository }}/releases/download/v${{ env.VERSION }}/auto-alt-magic-${{ env.VERSION }}.zip"' update.json > update.json.tmp
+          mv update.json.tmp update.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: auto-alt-magic-${{ env.VERSION }}.zip
+
+      - name: Publish update.json to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          keep_files: true
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Update update.json for v${{ env.VERSION }}'

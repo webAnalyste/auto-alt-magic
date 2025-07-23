@@ -3,7 +3,8 @@
 # Usage : ./tools/build-plugin-zip.sh
 
 PLUGIN_SLUG="auto-alt-magic"
-VERSION=$(grep "^Version:" ../$PLUGIN_SLUG.php | awk '{print $2}')
+cd "$(dirname "$0")/.."
+VERSION=$(grep "^Version:" "$PLUGIN_SLUG.php" | awk '{print $2}')
 ZIP_NAME="$PLUGIN_SLUG-$VERSION.zip"
 
 cd "$(dirname "$0")/.."
