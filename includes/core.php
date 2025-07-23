@@ -38,14 +38,23 @@ function aam_core_process_post($post_ID, $post) {
     $imgs = $dom->getElementsByTagName('img');
     if (!$imgs || $imgs->length === 0) return;
 
-    // Prépare les paramètres contextuels (meta > options globales)
-    $method = get_post_meta($post->ID, 'aam_method', true) ?: get_option('aam_method', 'titre');
-    $text_libre = get_post_meta($post->ID, 'aam_text_libre', true) ?: get_option('aam_text_libre', '');
-    $prefix = get_post_meta($post->ID, 'aam_prefix', true) ?: get_option('aam_prefix', '');
-    $suffix = get_post_meta($post->ID, 'aam_suffix', true) ?: get_option('aam_suffix', '');
-    $only_empty = get_post_meta($post->ID, 'aam_only_empty_alt', true) ?: get_option('aam_only_empty_alt', 0);
-    $replace_all = get_post_meta($post->ID, 'aam_replace_all_alt', true) ?: get_option('aam_replace_all_alt', 0);
-    $title_sync = get_post_meta($post->ID, 'aam_option_title_sync', true) ?: get_option('aam_option_title_sync', 1);
+    // Prépare les paramètres contextuels (meta > réglages type > options globales legacy)
+    $type = $post->post_type;
+    $type_settings = get_option('aam_settings_' . $type, []);
+    $method = get_post_meta($post->ID, 'aam_method', true)
+        ?: ($type_settings['method'] ?? get_option('aam_method', 'titre'));
+    $text_libre = get_post_meta($post->ID, 'aam_text_libre', true)
+        ?: ($type_settings['text_libre'] ?? get_option('aam_text_libre', ''));
+    $prefix = get_post_meta($post->ID, 'aam_prefix', true)
+        ?: ($type_settings['prefix'] ?? get_option('aam_prefix', ''));
+    $suffix = get_post_meta($post->ID, 'aam_suffix', true)
+        ?: ($type_settings['suffix'] ?? get_option('aam_suffix', ''));
+    $only_empty = get_post_meta($post->ID, 'aam_only_empty_alt', true);
+    if ($only_empty === '') $only_empty = isset($type_settings['only_empty_alt']) ? $type_settings['only_empty_alt'] : get_option('aam_only_empty_alt', 0);
+    $replace_all = get_post_meta($post->ID, 'aam_replace_all_alt', true);
+    if ($replace_all === '') $replace_all = isset($type_settings['replace_all_alt']) ? $type_settings['replace_all_alt'] : get_option('aam_replace_all_alt', 0);
+    $title_sync = get_post_meta($post->ID, 'aam_option_title_sync', true);
+    if ($title_sync === '') $title_sync = isset($type_settings['option_title_sync']) ? $type_settings['option_title_sync'] : get_option('aam_option_title_sync', 1);
     $focus_keyword = aam_get_focus_keyword($post->ID);
     if (!$focus_keyword) {
         $focus_keyword = get_post_meta($post->ID, 'aam_focus_keyword', true);
