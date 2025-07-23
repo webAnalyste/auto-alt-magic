@@ -10,7 +10,7 @@ add_filter('site_transient_update_plugins', function($transient) {
         require_once ABSPATH . 'wp-admin/includes/plugin.php';
     }
     $current_version = get_plugin_data(WP_PLUGIN_DIR . '/auto-alt-magic/auto-alt-magic.php')['Version'];
-    $update_url = 'https://github.com/webAnalyste/auto-alt-magic/raw/main/update.json'; // À adapter selon endpoint public
+    $update_url = 'https://raw.githubusercontent.com/webAnalyste/auto-alt-magic/main/update.json'; // Endpoint public RAW GitHub
     $response = wp_remote_get($update_url, ['timeout' => 10]);
     if (is_wp_error($response)) return $transient;
     $data = json_decode(wp_remote_retrieve_body($response));
