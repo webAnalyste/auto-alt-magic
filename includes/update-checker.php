@@ -6,6 +6,9 @@
 add_filter('site_transient_update_plugins', function($transient) {
     if (empty($transient->checked)) return $transient;
     $plugin_slug = 'auto-alt-magic/auto-alt-magic.php';
+    if (!function_exists('get_plugin_data')) {
+        require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    }
     $current_version = get_plugin_data(WP_PLUGIN_DIR . '/auto-alt-magic/auto-alt-magic.php')['Version'];
     $update_url = 'https://github.com/webAnalyste/auto-alt-magic/raw/main/update.json'; // À adapter selon endpoint public
     $response = wp_remote_get($update_url, ['timeout' => 10]);
