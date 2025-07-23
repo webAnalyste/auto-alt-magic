@@ -51,7 +51,8 @@ function aam_process_post_content($post_ID, $post, $update) {
 
 // Préparation des hooks pour actions admin (bouton, batch, rollback)
 if (is_admin()) {
-    require_once AAM_PLUGIN_DIR . 'admin/batch.php';
+    require_once AAM_PLUGIN_DIR . 'includes/settings.php';
+    require_once AAM_PLUGIN_DIR . 'admin/metabox-featured-alt.php';
     require_once AAM_PLUGIN_DIR . 'admin/metabox.php';
     require_once AAM_PLUGIN_DIR . 'admin/dashboard.php';
 }
