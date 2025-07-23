@@ -26,8 +26,8 @@ add_action('admin_init', function() {
     register_setting('aam_settings_group', 'aam_method');
     register_setting('aam_settings_group', 'aam_text_libre');
     register_setting('aam_settings_group', 'aam_option_title_sync');
-    register_setting('aam_settings_group', 'aam_only_empty_alt');
-    register_setting('aam_settings_group', 'aam_replace_all_alt');
+    
+    
     register_setting('aam_settings_group', 'aam_prefix');
     register_setting('aam_settings_group', 'aam_suffix');
 
@@ -42,8 +42,8 @@ add_action('admin_init', function() {
     }, 10, 2);
     register_setting('aam_settings_group', 'aam_openai_api_key');
     // Enregistrement sécurisé des nouvelles options
-    register_setting('aam_settings_group', 'aam_only_empty_alt');
-    register_setting('aam_settings_group', 'aam_replace_all_alt');
+    
+    
     register_setting('aam_settings_group', 'aam_prefix');
     register_setting('aam_settings_group', 'aam_suffix');
 });
@@ -65,8 +65,16 @@ function aam_settings_page_render() {
         ]],
         'text_libre' => ['label' => __('Texte libre', 'auto-alt-magic'), 'type' => 'text'],
         'option_title_sync' => ['label' => __('Dupliquer ALT vers TITLE si manquant', 'auto-alt-magic'), 'type' => 'checkbox'],
-        'only_empty_alt' => ['label' => __('Traiter uniquement les images sans alt', 'auto-alt-magic'), 'type' => 'checkbox'],
-        'replace_all_alt' => ['label' => __('Traiter toutes les images (remplacer alt existant)', 'auto-alt-magic'), 'type' => 'checkbox'],
+        'alt_replace_mode' => [
+            'label' => __('Remplacement des attributs ALT', 'auto-alt-magic'),
+            'type' => 'select',
+            'choices' => [
+                'none' => __('Ne rien remplacer', 'auto-alt-magic'),
+                'empty' => __('Remplacer si ALT vide', 'auto-alt-magic'),
+                'all' => __('Remplacer tous les ALT', 'auto-alt-magic'),
+                'short' => __('Remplacer si ALT < 30 caractères', 'auto-alt-magic'),
+            ]
+        ],
         'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text'],
         'suffix' => ['label' => __('Suffixe ALT', 'auto-alt-magic'), 'type' => 'text'],
     ];

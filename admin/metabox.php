@@ -23,16 +23,9 @@ function aam_magic_metabox($post) {
     echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT généré automatiquement selon le type de contenu" /></p>';
     echo '<p class="description">' . __('Ce champ est généré automatiquement selon les réglages globaux du type de contenu, mais peut être écrasé ici par un texte libre (prioritaire).', 'auto-alt-magic') . '</p>';
 
-    // Mode de remplacement ALT
-    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
-    echo '<p><strong>' . __('Remplacement des attributs ALT', 'auto-alt-magic') . '</strong><br />';
-    echo '<select name="aam_alt_replace_mode" style="width:100%">';
-    echo '<option value="none"' . selected($alt_replace_mode, 'none', false) . '>' . __('Ne rien remplacer (laisser ALT existant)', 'auto-alt-magic') . '</option>';
-    echo '<option value="empty"' . selected($alt_replace_mode, 'empty', false) . '>' . __('Remplacer si ALT vide', 'auto-alt-magic') . '</option>';
-    echo '<option value="all"' . selected($alt_replace_mode, 'all', false) . '>' . __('Remplacer tous les ALT', 'auto-alt-magic') . '</option>';
-    echo '<option value="short"' . selected($alt_replace_mode, 'short', false) . '>' . __('Remplacer si ALT < 30 caractères', 'auto-alt-magic') . '</option>';
-    echo '</select></p>';
-    echo '<p class="description">' . __('Ce réglage contrôle quand le plugin remplace les attributs ALT dans le contenu. "< 30 caractères" est utile pour corriger les ALT trop courts générés par d’autres plugins ou imports.', 'auto-alt-magic') . '</p>';
+    // Bouton reset ALT manuel
+    echo '<button type="button" class="button" onclick="document.querySelector(\'input[name=\'aam_featured_alt\']\').value = ' . json_encode($default_alt) . ';">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
+
 }
 
 add_action('save_post', function($post_id) {
