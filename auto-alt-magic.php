@@ -18,6 +18,7 @@ if (!defined('AAM_PLUGIN_URL'))
     define('AAM_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 // Chargement du cœur du plugin
+require_once AAM_PLUGIN_DIR . 'includes/seo.php';
 require_once AAM_PLUGIN_DIR . 'includes/core.php';
 require_once AAM_PLUGIN_DIR . 'includes/plans.php';
 require_once AAM_PLUGIN_DIR . 'includes/settings.php';
