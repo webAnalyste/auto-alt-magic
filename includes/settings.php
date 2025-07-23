@@ -1,6 +1,17 @@
 <?php
 // Ajoute la page de réglages Auto ALT Magic dans l’admin
 add_action('admin_menu', function() {
+    // Menu principal colonne gauche
+    add_menu_page(
+        __('Auto ALT Magic', 'auto-alt-magic'), // Titre menu
+        __('Auto ALT Magic', 'auto-alt-magic'), // Label menu
+        'manage_options',
+        'auto-alt-magic-settings',
+        'aam_settings_page_render',
+        'dashicons-image-filter', // Icône WP
+        56 // Position
+    );
+    // (Optionnel) Sous-menu dans Réglages
     add_options_page(
         __('Auto ALT Magic', 'auto-alt-magic'),
         __('Auto ALT Magic', 'auto-alt-magic'),
