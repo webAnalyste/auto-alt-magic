@@ -1,3 +1,56 @@
 <?php
-// Interface d’admin (settings)
-// (structure à compléter)
+// Ajoute la page de réglages Auto ALT Magic dans l’admin
+add_action('admin_menu', function() {
+    add_options_page(
+        __('Auto ALT Magic', 'auto-alt-magic'),
+        __('Auto ALT Magic', 'auto-alt-magic'),
+        'manage_options',
+        'auto-alt-magic-settings',
+        'aam_settings_page_render'
+    );
+});
+
+// Enregistrement des options
+add_action('admin_init', function() {
+    register_setting('aam_settings_group', 'aam_method');
+    register_setting('aam_settings_group', 'aam_text_libre');
+    register_setting('aam_settings_group', 'aam_option_title_sync');
+});
+
+function aam_settings_page_render() {
+    ?>
+    <div class="wrap">
+        <h1><?php _e('Réglages Auto ALT Magic', 'auto-alt-magic'); ?></h1>
+        <form method="post" action="options.php">
+            <?php settings_fields('aam_settings_group'); ?>
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Méthode de génération ALT</th>
+                    <td>
+                        <select name="aam_method">
+                            <option value="titre" <?php selected(get_option('aam_method'), 'titre'); ?>><?php _e('Titre du post', 'auto-alt-magic'); ?></option>
+                            <option value="nom_fichier" <?php selected(get_option('aam_method'), 'nom_fichier'); ?>><?php _e('Nom du fichier image', 'auto-alt-magic'); ?></option>
+                            <option value="texte_libre" <?php selected(get_option('aam_method'), 'texte_libre'); ?>><?php _e('Texte libre (avec balises)', 'auto-alt-magic'); ?></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Texte libre (si sélectionné)</th>
+                    <td>
+                        <input type="text" name="aam_text_libre" value="<?php echo esc_attr(get_option('aam_text_libre', '')); ?>" style="width: 100%" placeholder="Ex : Image de {{type_post}} : {{titre}} (mot-clé : {{mot_cle}})" />
+                        <p class="description">Balises supportées : {{mot_cle}}, {{titre}}, {{nom_image}}, {{lang}}, {{type_post}}</p>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Dupliquer ALT vers TITLE si manquant</th>
+                    <td>
+                        <input type="checkbox" name="aam_option_title_sync" value="1" <?php checked(get_option('aam_option_title_sync'), 1); ?> />
+                        <span class="description">Ajoute automatiquement un attribut title identique à alt si title est absent.</span>
+                    </td>
+                </tr>
+            </table>
+            <?php submit_button(); ?>
+        </form>
+    </div>
+    <?php
+}
