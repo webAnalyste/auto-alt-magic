@@ -69,7 +69,7 @@ function aam_settings_page_render() {
         'replace_all_alt' => ['label' => __('Traiter toutes les images (remplacer alt existant)', 'auto-alt-magic'), 'type' => 'checkbox'],
         'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text'],
         'suffix' => ['label' => __('Suffixe ALT', 'auto-alt-magic'), 'type' => 'text'],
-    };
+    ];
     // Gestion de la soumission du formulaire
     if (isset($_POST['aam_save_settings']) && check_admin_referer('aam_settings_save', 'aam_settings_nonce')) {
         foreach ($post_types as $type => $obj) {
