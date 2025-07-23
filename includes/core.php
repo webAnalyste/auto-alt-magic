@@ -172,6 +172,12 @@ function aam_core_process_post($post_ID, $post) {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
     $images = $dom->getElementsByTagName('img');
+    // Charger les options de ciblage/préfixe/suffixe
+    $only_empty = get_option('aam_only_empty_alt', 0);
+    $replace_all = get_option('aam_replace_all_alt', 0);
+    $prefix = get_option('aam_prefix', '');
+    $suffix = get_option('aam_suffix', '');
+
     foreach ($images as $img) {
         $src = $img->getAttribute('src');
         $nom_image = '';
@@ -179,6 +185,19 @@ function aam_core_process_post($post_ID, $post) {
             $parts = explode('/', $src);
             $nom_image = pathinfo(end($parts), PATHINFO_FILENAME);
         }
+        // Ciblage selon options
+        $current_alt = $img->getAttribute('alt');
+        $do_process = false;
+        if ($replace_all) {
+            $do_process = true;
+        } elseif ($only_empty) {
+            $do_process = (empty($current_alt) || trim($current_alt) === '');
+        } else {
+            // Par défaut : ne traite que les images sans alt
+            $do_process = (empty($current_alt) || trim($current_alt) === '');
+        }
+        if (!$do_process) continue;
+
         // Génération du nouvel ALT
         $alt = '';
         if ($method === 'titre') {
@@ -194,6 +213,13 @@ function aam_core_process_post($post_ID, $post) {
                 'lang' => $lang,
                 'type_post' => $type_post,
             ]);
+        }
+        // Ajout préfixe/suffixe si défini
+        if (!empty($prefix)) {
+            $alt = $prefix . $alt;
+        }
+        if (!empty($suffix)) {
+            $alt = $alt . $suffix;
         }
         /**
          * Hook développeur : personnalisation du texte ALT généré.
