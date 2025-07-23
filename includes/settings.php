@@ -15,6 +15,17 @@ add_action('admin_init', function() {
     register_setting('aam_settings_group', 'aam_method');
     register_setting('aam_settings_group', 'aam_text_libre');
     register_setting('aam_settings_group', 'aam_option_title_sync');
+
+    // Sauvegarde sécurisée de la clé OpenAI
+    add_action('pre_update_option_aam_openai_api_key', function($new, $old) {
+        // Si champ vide ou masqué, ne pas modifier la clé existante
+        if (empty($new) || $new === '************') {
+            return $old;
+        }
+        // Ne jamais logger ni afficher la clé
+        return sanitize_text_field($new);
+    }, 10, 2);
+    register_setting('aam_settings_group', 'aam_openai_api_key');
 });
 
 function aam_settings_page_render() {
@@ -46,6 +57,14 @@ function aam_settings_page_render() {
                     <td>
                         <input type="checkbox" name="aam_option_title_sync" value="1" <?php checked(get_option('aam_option_title_sync'), 1); ?> />
                         <span class="description">Ajoute automatiquement un attribut title identique à alt si title est absent.</span>
+                    </td>
+                </tr>
+                <tr valign="top">
+                    <th scope="row">Clé API OpenAI (Pro)</th>
+                    <td>
+                        <?php $val = !empty(get_option('aam_openai_api_key')) ? '************' : ''; ?>
+                        <input type="password" name="aam_openai_api_key" value="<?php echo esc_attr($val); ?>" autocomplete="off" placeholder="sk-..." />
+                        <small>Jamais stockée ni affichée en clair. Usage backend uniquement.</small>
                     </td>
                 </tr>
             </table>
