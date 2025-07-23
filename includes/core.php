@@ -38,6 +38,10 @@ function aam_core_process_post($post_ID, $post) {
                         'type_post' => $type_post,
                     ]);
                 }
+                /**
+                 * Hook développeur : personnalisation du texte ALT généré (WooCommerce thumbnail)
+                 * Voir doc bloc principal.
+                 */
                 $alt_new = apply_filters('autoalt_custom_alt', $alt_new, '', $post_ID, [
                     'method' => $method,
                     'mot_cle' => $mot_cle,
@@ -79,6 +83,10 @@ function aam_core_process_post($post_ID, $post) {
                             'type_post' => $type_post,
                         ]);
                     }
+                    /**
+                     * Hook développeur : personnalisation du texte ALT généré (WooCommerce galerie)
+                     * Voir doc bloc principal.
+                     */
                     $alt_new = apply_filters('autoalt_custom_alt', $alt_new, '', $post_ID, [
                         'method' => $method,
                         'mot_cle' => $mot_cle,
@@ -144,6 +152,21 @@ function aam_core_process_post($post_ID, $post) {
                 'type_post' => $type_post,
             ]);
         }
+        /**
+         * Hook développeur : personnalisation du texte ALT généré.
+         *
+         * @param string $alt     ALT généré par Auto ALT Magic
+         * @param string $src     URL de l'image
+         * @param int    $post_ID ID du post
+         * @param array  $context [méthode, mot_cle, titre, nom_image, lang, type_post]
+         * @return string         ALT personnalisé
+         *
+         * Exemple d'usage dans functions.php :
+         * add_filter('autoalt_custom_alt', function($alt, $src, $post_id, $context) {
+         *     if ($context['type_post']==='product') return $alt.' - Produit';
+         *     return $alt;
+         * }, 10, 4);
+         */
         $alt = apply_filters('autoalt_custom_alt', $alt, $src, $post_ID, [
             'method' => $method,
             'mot_cle' => $mot_cle,
