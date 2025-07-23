@@ -6,145 +6,9 @@
  * @param WP_Post $post
  */
 function aam_core_process_post($post_ID, $post) {
-    // Traitement image à la une (featured image) pour post/page (hors produit)
-    if (in_array($post->post_type, ['post', 'page'])) {
-        $thumb_id = get_post_thumbnail_id($post_ID);
-        if ($thumb_id) {
-            $alt = get_post_meta($thumb_id, '_wp_attachment_image_alt', true);
-            $method = get_option('aam_method', 'titre');
-            $titre = get_the_title($post_ID);
-            $nom_image = get_post_field('post_name', $thumb_id);
-            $mot_cle = aam_get_focus_keyword($post_ID);
-            if (!$mot_cle) {
-                $mot_cle = get_post_meta($post_ID, 'aam_focus_keyword', true);
-            }
-            $lang = get_locale();
-            $type_post = $post->post_type;
-            $alt_new = '';
-            if ($method === 'titre') {
-                $alt_new = $titre;
-            } elseif ($method === 'nom_fichier') {
-                $alt_new = $nom_image;
-            } elseif ($method === 'texte_libre') {
-                require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
-                $alt_new = aam_parse_template_tags(get_option('aam_text_libre', ''), [
-                    'mot_cle' => $mot_cle,
-                    'titre' => $titre,
-                    'nom_image' => $nom_image,
-                    'lang' => $lang,
-                    'type_post' => $type_post,
-                ]);
-            }
-            // Hook développeur : personnalisation du texte ALT généré (featured image post/page)
-            $alt_new = apply_filters('autoalt_custom_alt', $alt_new, '', $post_ID, [
-                'method' => $method,
-                'mot_cle' => $mot_cle,
-                'titre' => $titre,
-                'nom_image' => $nom_image,
-                'lang' => $lang,
-                'type_post' => $type_post,
-            ]);
-            if (!empty($alt_new)) {
-                update_post_meta($thumb_id, '_wp_attachment_image_alt', esc_attr($alt_new));
-            }
-        }
-    }
-    // WooCommerce : traiter aussi la galerie et le thumbnail si produit
-    if ($post->post_type === 'product' && function_exists('wc_get_product')) {
-        $product = wc_get_product($post_ID);
-        if ($product) {
-            // Thumbnail principal
-            $thumb_id = $product->get_image_id();
-            if ($thumb_id) {
-                $alt = get_post_meta($thumb_id, '_wp_attachment_image_alt', true);
-                $method = get_option('aam_method', 'titre');
-                $titre = get_the_title($post_ID);
-                $nom_image = get_post_field('post_name', $thumb_id);
-                $mot_cle = aam_get_focus_keyword($post_ID);
-                if (!$mot_cle) {
-                    $mot_cle = get_post_meta($post_ID, 'aam_focus_keyword', true);
-                }
-                $lang = get_locale();
-                $type_post = $post->post_type;
-                $alt_new = '';
-                if ($method === 'titre') {
-                    $alt_new = $titre;
-                } elseif ($method === 'nom_fichier') {
-                    $alt_new = $nom_image;
-                } elseif ($method === 'texte_libre') {
-                    require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
-                    $alt_new = aam_parse_template_tags(get_option('aam_text_libre', ''), [
-                        'mot_cle' => $mot_cle,
-                        'titre' => $titre,
-                        'nom_image' => $nom_image,
-                        'lang' => $lang,
-                        'type_post' => $type_post,
-                    ]);
-                }
-                /**
-                 * Hook développeur : personnalisation du texte ALT généré (WooCommerce thumbnail)
-                 * Voir doc bloc principal.
-                 */
-                $alt_new = apply_filters('autoalt_custom_alt', $alt_new, '', $post_ID, [
-                    'method' => $method,
-                    'mot_cle' => $mot_cle,
-                    'titre' => $titre,
-                    'nom_image' => $nom_image,
-                    'lang' => $lang,
-                    'type_post' => $type_post,
-                ]);
-                if (!empty($alt_new)) {
-                    update_post_meta($thumb_id, '_wp_attachment_image_alt', esc_attr($alt_new));
-                }
-            }
-            // Galerie produit
-            $gallery_ids = $product->get_gallery_image_ids();
-            if (is_array($gallery_ids)) {
-                foreach ($gallery_ids as $img_id) {
-                    $alt = get_post_meta($img_id, '_wp_attachment_image_alt', true);
-                    $method = get_option('aam_method', 'titre');
-                    $titre = get_the_title($post_ID);
-                    $nom_image = get_post_field('post_name', $img_id);
-                    $mot_cle = aam_get_focus_keyword($post_ID);
-                    if (!$mot_cle) {
-                        $mot_cle = get_post_meta($post_ID, 'aam_focus_keyword', true);
-                    }
-                    $lang = get_locale();
-                    $type_post = $post->post_type;
-                    $alt_new = '';
-                    if ($method === 'titre') {
-                        $alt_new = $titre;
-                    } elseif ($method === 'nom_fichier') {
-                        $alt_new = $nom_image;
-                    } elseif ($method === 'texte_libre') {
-                        require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
-                        $alt_new = aam_parse_template_tags(get_option('aam_text_libre', ''), [
-                            'mot_cle' => $mot_cle,
-                            'titre' => $titre,
-                            'nom_image' => $nom_image,
-                            'lang' => $lang,
-                            'type_post' => $type_post,
-                        ]);
-                    }
-                    /**
-                     * Hook développeur : personnalisation du texte ALT généré (WooCommerce galerie)
-                     * Voir doc bloc principal.
-                     */
-                    $alt_new = apply_filters('autoalt_custom_alt', $alt_new, '', $post_ID, [
-                        'method' => $method,
-                        'mot_cle' => $mot_cle,
-                        'titre' => $titre,
-                        'nom_image' => $nom_image,
-                        'lang' => $lang,
-                        'type_post' => $type_post,
-                    ]);
-                    if (!empty($alt_new)) {
-                        update_post_meta($img_id, '_wp_attachment_image_alt', esc_attr($alt_new));
-                    }
-                }
-            }
-        }
-    }
+    // Suppression : ne plus modifier le ALT global dans la médiathèque
+    // Toute la logique passe par le parsing du post_content (HTML), ALT contextuel
+
 
     // Sécurité : ne traiter que les post/page/produit publiés ou en brouillon
     if (!in_array($post->post_type, ['post', 'page', 'product'])) return;
@@ -171,87 +35,85 @@ function aam_core_process_post($post_ID, $post) {
     libxml_use_internal_errors(true);
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    $images = $dom->getElementsByTagName('img');
-    // Charger les options de ciblage/préfixe/suffixe
-    $only_empty = get_option('aam_only_empty_alt', 0);
-    $replace_all = get_option('aam_replace_all_alt', 0);
-    $prefix = get_option('aam_prefix', '');
-    $suffix = get_option('aam_suffix', '');
+    $imgs = $dom->getElementsByTagName('img');
+    if (!$imgs || $imgs->length === 0) return;
 
-    foreach ($images as $img) {
+    // Prépare les paramètres contextuels (meta > options globales)
+    $method = get_post_meta($post->ID, 'aam_method', true) ?: get_option('aam_method', 'titre');
+    $text_libre = get_post_meta($post->ID, 'aam_text_libre', true) ?: get_option('aam_text_libre', '');
+    $prefix = get_post_meta($post->ID, 'aam_prefix', true) ?: get_option('aam_prefix', '');
+    $suffix = get_post_meta($post->ID, 'aam_suffix', true) ?: get_option('aam_suffix', '');
+    $only_empty = get_post_meta($post->ID, 'aam_only_empty_alt', true) ?: get_option('aam_only_empty_alt', 0);
+    $replace_all = get_post_meta($post->ID, 'aam_replace_all_alt', true) ?: get_option('aam_replace_all_alt', 0);
+    $title_sync = get_post_meta($post->ID, 'aam_option_title_sync', true) ?: get_option('aam_option_title_sync', 1);
+    $focus_keyword = aam_get_focus_keyword($post->ID);
+    if (!$focus_keyword) {
+        $focus_keyword = get_post_meta($post->ID, 'aam_focus_keyword', true);
+    }
+    $featured_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
+    $thumb_id = get_post_thumbnail_id($post->ID);
+    $thumb_url = $thumb_id ? wp_get_attachment_url($thumb_id) : '';
+    $titre = get_the_title($post->ID);
+    $lang = get_locale();
+    $type_post = $post->post_type;
+
+    // Parcours toutes les images du contenu
+    foreach ($imgs as $img) {
         $src = $img->getAttribute('src');
+        $alt = $img->getAttribute('alt');
+        $is_featured = ($thumb_url && $src && strpos($src, $thumb_url) !== false);
         $nom_image = '';
         if ($src) {
-            $parts = explode('/', $src);
-            $nom_image = pathinfo(end($parts), PATHINFO_FILENAME);
+            $nom_image = pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_FILENAME);
         }
-        // Ciblage selon options
-        $current_alt = $img->getAttribute('alt');
-        $do_process = false;
-        if ($replace_all) {
-            $do_process = true;
-        } elseif ($only_empty) {
-            $do_process = (empty($current_alt) || trim($current_alt) === '');
+        // Cas featured image avec ALT manuel
+        if ($is_featured && !empty($featured_alt)) {
+            $alt_new = $featured_alt;
         } else {
-            // Par défaut : ne traite que les images sans alt
-            $do_process = (empty($current_alt) || trim($current_alt) === '');
+            // Génération selon méthode
+            if ($method === 'titre') {
+                $alt_new = $titre;
+            } elseif ($method === 'nom_fichier') {
+                $alt_new = $nom_image;
+            } elseif ($method === 'texte_libre') {
+                require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
+                $alt_new = aam_parse_template_tags($text_libre, [
+                    'mot_cle' => $focus_keyword,
+                    'titre' => $titre,
+                    'nom_image' => $nom_image,
+                    'lang' => $lang,
+                    'type_post' => $type_post,
+                ]);
+            } else {
+                $alt_new = $titre;
+            }
         }
-        if (!$do_process) continue;
-
-        // Génération du nouvel ALT
-        $alt = '';
-        if ($method === 'titre') {
-            $alt = $titre;
-        } elseif ($method === 'nom_fichier') {
-            $alt = $nom_image;
-        } elseif ($method === 'texte_libre') {
-            require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
-            $alt = aam_parse_template_tags($text_libre, [
-                'mot_cle' => $mot_cle,
-                'titre' => $titre,
-                'nom_image' => $nom_image,
-                'lang' => $lang,
-                'type_post' => $type_post,
-            ]);
-        }
-        // Ajout préfixe/suffixe si défini
-        if (!empty($prefix)) {
-            $alt = $prefix . $alt;
-        }
-        if (!empty($suffix)) {
-            $alt = $alt . $suffix;
-        }
-        /**
-         * Hook développeur : personnalisation du texte ALT généré.
-         *
-         * @param string $alt     ALT généré par Auto ALT Magic
-         * @param string $src     URL de l'image
-         * @param int    $post_ID ID du post
-         * @param array  $context [méthode, mot_cle, titre, nom_image, lang, type_post]
-         * @return string         ALT personnalisé
-         *
-         * Exemple d'usage dans functions.php :
-         * add_filter('autoalt_custom_alt', function($alt, $src, $post_id, $context) {
-         *     if ($context['type_post']==='product') return $alt.' - Produit';
-         *     return $alt;
-         * }, 10, 4);
-         */
-        $alt = apply_filters('autoalt_custom_alt', $alt, $src, $post_ID, [
+        // Hook développeur
+        $alt_new = apply_filters('autoalt_custom_alt', $alt_new, $src, $post->ID, [
             'method' => $method,
-            'mot_cle' => $mot_cle,
+            'mot_cle' => $focus_keyword,
             'titre' => $titre,
             'nom_image' => $nom_image,
             'lang' => $lang,
             'type_post' => $type_post,
+            'is_featured' => $is_featured,
         ]);
-        if (!empty($alt)) {
-            $img->setAttribute('alt', esc_attr($alt));
-            // Dupliquer le alt en title si demandé
-            if ($title_sync && !$img->hasAttribute('title')) {
-                $img->setAttribute('title', esc_attr($alt));
+        // Préfixe/suffixe
+        if ($prefix) $alt_new = $prefix . ' ' . $alt_new;
+        if ($suffix) $alt_new = $alt_new . ' ' . $suffix;
+        $alt_new = trim($alt_new);
+        // Ciblage : remplacer que si alt vide OU forcer selon option
+        if (($only_empty && !$alt) || $replace_all || ($is_featured && !empty($featured_alt))) {
+            $img->setAttribute('alt', esc_attr($alt_new));
+            // Duplication dans title si activé
+            if ($title_sync) {
+                if (!$img->hasAttribute('title') || !$img->getAttribute('title')) {
+                    $img->setAttribute('title', esc_attr($alt_new));
+                }
             }
         }
     }
+    // Sauvegarde du contenu modifié
     $new_content = $dom->saveHTML();
     // Nettoyage de l’entête XML ajouté par DOMDocument
     $new_content = preg_replace('/^<\?xml.*?\?>/', '', $new_content);
