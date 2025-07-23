@@ -7,8 +7,8 @@
 FTP_HOST="147.79.103.225"
 FTP_USER="u781218936"
 FTP_PASS="@1512_Jdepp1969#1808#1"
-REMOTE_DIR="/domains/training.webanalyste.com/public_html/wp-content/plugins/auto-alt-magic"
-LOCAL_DIR="$(dirname "$0")/.."
+REMOTE_DIR="/domains/training.webanalyste.com/public_html/wp-content/plugins/auto-alt-magic/"
+LOCAL_DIR="/Users/fscan/Library/CloudStorage/GoogleDrive-franck@webanalyste.com/Mon Drive/webAnalyste/scripts/WindSurf/CascadeProjects/extensions WP/auto-alt-magic/"
 
 # === DÉPLOIEMENT ===
 if ! command -v lftp >/dev/null 2>&1; then

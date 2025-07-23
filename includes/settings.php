@@ -109,7 +109,7 @@ function aam_settings_page_render() {
                     <h2><?php echo esc_html($obj->labels->singular_name); ?></h2>
                     <table class="form-table">
                         <?php foreach ($params as $key => $def): ?>
-                        <tr valign="top">
+                        <tr valign="top"<?php if ($key === 'text_libre') { echo ' class="aam-row-text-libre aam-row-text-libre-' . esc_attr($type) . '"'; } ?>>
                             <th scope="row"><?php echo esc_html($def['label']); ?></th>
                             <td>
                                 <?php if ($def['type'] === 'select'): ?>
@@ -121,7 +121,7 @@ function aam_settings_page_render() {
 <?php elseif ($def['type'] === 'checkbox'): ?>
     <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> />
 <?php else: ?>
-    <div class="aam-text-libre-wrap aam-text-libre-<?php echo esc_attr($type); ?>" style="display:<?php echo (($all_settings[$type]['method'] ?? '') === 'texte_libre') ? 'block' : 'none'; ?>;">
+    <div class="aam-text-libre-wrap aam-text-libre-<?php echo esc_attr($type); ?>">
         <input type="text" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($all_settings[$type][$key] ?? ''); ?>" style="width:100%" />
         <br><small><?php _e('Balises supportées', 'auto-alt-magic'); ?> : {{mot_cle}}, {{titre}}, {{nom_image}}, {{lang}}, {{type_post}}</small>
     </div>
@@ -149,12 +149,20 @@ function aam_settings_page_render() {
     </style>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initial hide/show on load
+        document.querySelectorAll('.aam-method-select').forEach(function(sel) {
+            var type = sel.getAttribute('data-type');
+            var show = sel.value === 'texte_libre';
+            var row = document.querySelector('.aam-row-text-libre-' + type);
+            if (row) row.style.display = show ? 'table-row' : 'none';
+        });
+        // On select change
         document.querySelectorAll('.aam-method-select').forEach(function(sel) {
             sel.addEventListener('change', function(e) {
                 var type = this.getAttribute('data-type');
                 var show = this.value === 'texte_libre';
-                var wrap = document.querySelector('.aam-text-libre-' + type);
-                if (wrap) wrap.style.display = show ? 'block' : 'none';
+                var row = document.querySelector('.aam-row-text-libre-' + type);
+                if (row) row.style.display = show ? 'table-row' : 'none';
             });
         });
     });
