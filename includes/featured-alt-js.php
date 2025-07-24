@@ -78,16 +78,26 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('AAM: Aucune featured image trouvée pour injection ALT');
     }
     
+    // Injection ALT sur galerie WooCommerce (images supplémentaires)
+    var wooGalleryImgs = document.querySelectorAll('.woocommerce-product-gallery__image img, .flex-viewport img, .woocommerce-product-gallery img');
+    wooGalleryImgs.forEach(function(img) {
+        if (img.src && (img.src.indexOf('" . esc_js($thumb_filename) . "') !== -1 || img.getAttribute('data-attachment-id') === '" . $thumb_id . "')) {
+            img.alt = altText;
+            if (!img.title) img.title = altText;
+            console.log('AAM: ALT injecté sur galerie WooCommerce');
+        }
+    });
+    
     // MutationObserver pour réinjecter ALT si WooCommerce modifie l'image
     var observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList' || mutation.type === 'attributes') {
-                var imgs = document.querySelectorAll('img.wp-post-image, img[data-attachment-id=\"" . $thumb_id . "\"]');
+                var imgs = document.querySelectorAll('img.wp-post-image, img[data-attachment-id=\"" . $thumb_id . "\"], .woocommerce-product-gallery__image img, .flex-viewport img, .woocommerce-product-gallery img');
                 imgs.forEach(function(img) {
-                    if (!img.alt || img.alt === '') {
+                    if ((!img.alt || img.alt === '') && (img.src.indexOf('" . esc_js($thumb_filename) . "') !== -1 || img.getAttribute('data-attachment-id') === '" . $thumb_id . "')) {
                         img.alt = altText;
                         if (!img.title) img.title = altText;
-                        console.log('AAM: ALT réinjecté après modification DOM');
+                        console.log('AAM: ALT réinjecté après modification DOM (galerie)');
                     }
                 });
             }
