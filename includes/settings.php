@@ -120,7 +120,7 @@ function aam_settings_page_render() {
         <?php endforeach; ?>
     </select>
 <?php elseif ($def['type'] === 'checkbox'): ?>
-    <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> />
+    <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> class="aam-title-sync-checkbox aam-title-sync-checkbox-<?php echo esc_attr($type); ?>" data-type="<?php echo esc_attr($type); ?>" style="<?php echo ($all_settings[$type]['method'] ?? '') === 'titre_image' && $key === 'option_title_sync' ? 'display:none;' : '' ?>" />
 <?php else: ?>
     <div class="aam-text-libre-wrap aam-text-libre-<?php echo esc_attr($type); ?>">
         <input type="text" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($all_settings[$type][$key] ?? ''); ?>" style="width:100%" />
@@ -150,22 +150,35 @@ function aam_settings_page_render() {
     </style>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initial hide/show on load
-        document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-            var type = sel.getAttribute('data-type');
-            var show = sel.value === 'texte_libre';
+    // Initial hide/show on load
+    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
+        var type = sel.getAttribute('data-type');
+        var show = sel.value === 'texte_libre';
+        var row = document.querySelector('.aam-row-text-libre-' + type);
+        if (row) row.style.display = show ? 'table-row' : 'none';
+        // Hide/show ALT->TITLE option if needed
+        var titleSyncCheckbox = document.querySelector('.aam-title-sync-checkbox-' + type);
+        if (titleSyncCheckbox && titleSyncCheckbox.name.includes('option_title_sync')) {
+            titleSyncCheckbox.style.display = (sel.value === 'titre_image') ? 'none' : '';
+            if (sel.value === 'titre_image') titleSyncCheckbox.checked = false;
+        }
+    });
+    // On select change
+    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
+        sel.addEventListener('change', function(e) {
+            var type = this.getAttribute('data-type');
+            var show = this.value === 'texte_libre';
             var row = document.querySelector('.aam-row-text-libre-' + type);
             if (row) row.style.display = show ? 'table-row' : 'none';
+            // Hide/show ALT->TITLE option if needed
+            var titleSyncCheckbox = document.querySelector('.aam-title-sync-checkbox-' + type);
+            if (titleSyncCheckbox && titleSyncCheckbox.name.includes('option_title_sync')) {
+                titleSyncCheckbox.style.display = (this.value === 'titre_image') ? 'none' : '';
+                if (this.value === 'titre_image') titleSyncCheckbox.checked = false;
+            }
         });
-        // On select change
-        document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-            sel.addEventListener('change', function(e) {
-                var type = this.getAttribute('data-type');
-                var show = this.value === 'texte_libre';
-                var row = document.querySelector('.aam-row-text-libre-' + type);
-                if (row) row.style.display = show ? 'table-row' : 'none';
-            });
-        });
+    });
+});        });
     });
     </script>
     <?php
