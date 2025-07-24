@@ -53,6 +53,8 @@ if (is_admin()) {
     require_once AAM_PLUGIN_DIR . 'admin/batch.php';
     require_once AAM_PLUGIN_DIR . 'admin/metabox.php';
     require_once AAM_PLUGIN_DIR . 'admin/dashboard.php';
+    require_once AAM_PLUGIN_DIR . 'includes/featured-alt-filter.php';
+    require_once AAM_PLUGIN_DIR . 'includes/alt-attributes-filter.php';
     require_once AAM_PLUGIN_DIR . 'includes/update-checker.php';
 }
 
