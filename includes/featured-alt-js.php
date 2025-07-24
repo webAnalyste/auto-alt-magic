@@ -5,6 +5,9 @@ add_action('wp_head', function() {
     global $post;
     if (!$post) return;
     
+    // Test de base : vérifier que le hook wp_head fonctionne
+    echo "<!-- AAM: Hook wp_head actif pour post ID: {$post->ID} -->\n";
+    
     // ALT manuel (metabox)
     $manual_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
     // ALT global (fallback)
