@@ -32,19 +32,24 @@ function aam_get_default_featured_alt($post) {
     // Préfixe/suffixe
     $prefix = isset($type_settings['prefix']) && trim($type_settings['prefix']) !== '' ? trim($type_settings['prefix']) : (trim(get_option('aam_prefix', '')) !== '' ? trim(get_option('aam_prefix', '')) : '');
     $suffix = isset($type_settings['suffix']) && trim($type_settings['suffix']) !== '' ? trim($type_settings['suffix']) : (trim(get_option('aam_suffix', '')) !== '' ? trim(get_option('aam_suffix', '')) : '');
+    // NE PAS concaténer préfixe/suffixe si vides
+    $alt_parts = [];
+    if ($prefix !== '') $alt_parts[] = $prefix;
+    // $alt sera défini plus bas selon la méthode
+    // (on concatène après la génération du $alt principal)
+
     // Génération selon la méthode
     if ($method === 'titre') {
         $alt = $titre;
     } elseif ($method === 'nom_fichier') {
         $alt = $nom_image;
     } elseif ($method === 'titre_image') {
-        // Récupérer le titre de la featured image (media title)
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        $media_title = '';
         if ($thumb_id) {
             $media_title = get_the_title($thumb_id);
-            $alt = !empty($media_title) ? $media_title : $titre; // Fallback sur titre du post si vide
-        } else {
-            $alt = $titre; // Fallback si pas de featured image
         }
+        $alt = $media_title !== '' ? $media_title : $titre;
     } elseif ($method === 'texte_libre') {
         require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
         $alt = aam_parse_template_tags($text_libre, [
@@ -57,8 +62,8 @@ function aam_get_default_featured_alt($post) {
     } else {
         $alt = $titre;
     }
-    // Application du préfixe/suffixe comme dans le core
-    if ($prefix) $alt = $prefix . ' ' . $alt;
-    if ($suffix) $alt = $alt . ' ' . $suffix;
-    return trim($alt);
+    // Appliquer préfixe/suffixe proprement (aucun espace ni texte si vide)
+    if ($alt !== '') $alt_parts[] = $alt;
+    if ($suffix !== '') $alt_parts[] = $suffix;
+    return trim(implode(' ', $alt_parts));
 }
