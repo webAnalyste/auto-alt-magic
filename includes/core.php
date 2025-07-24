@@ -149,6 +149,11 @@ function aam_core_process_post($post_ID, $post) {
         if ($suffix) $alt_new = $alt_new . ' ' . $suffix;
         $alt_new = trim($alt_new);
         // Ciblage avancé selon le mode de remplacement ALT
+        // Correction : si mode 'none', ne jamais injecter/modifier ALT/TITLE, même si vide
+        if ($alt_replace_mode === 'none') {
+            $do_replace = false;
+            continue; // Ne rien faire pour cette image
+        }
         $do_replace = false;
         if ($is_featured && !empty($featured_alt)) {
             $do_replace = true; // Toujours remplacer pour l'image à la une si champ manuel
