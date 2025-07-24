@@ -34,6 +34,8 @@ function aam_magic_metabox($post) {
 
     // Bouton reset ALT manuel
     echo '<button type="button" class="button aam-reset-featured-alt" data-default-alt="' . esc_attr($default_alt) . '">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
+    // Nouveau bouton reset natif
+    echo '<button type="button" class="button button-secondary aam-reset-native-alt" style="margin-left:8px">' . __('Restaurer ALT/TITLE natifs (médiathèque)', 'auto-alt-magic') . '</button>';
 
 // Injection JS robuste UX
 ?>
@@ -55,6 +57,30 @@ document.addEventListener("DOMContentLoaded",function(){
           prevAltInfo.style.display = 'none';
         }
       }
+    });
+  });
+  // Bouton reset natif ALT/TITLE
+  document.querySelectorAll(".aam-reset-native-alt").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      if(!confirm('Cette action supprimera tout ALT/TITLE personnalisé de ce post (featured image) et restaurera les valeurs natives de la médiathèque. Continuer ?')) return;
+      var box = btn.closest('.postbox');
+      var input = box.querySelector('input[name="aam_featured_alt"]');
+      if(input) {
+        input.value = '';
+        input.setAttribute('readonly','readonly');
+      }
+      // Ajout d’un champ caché pour signaler le reset au PHP
+      var form = btn.closest('form');
+      if(form && !form.querySelector('input[name="aam_reset_native_alt"]')) {
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'aam_reset_native_alt';
+        hidden.value = '1';
+        form.appendChild(hidden);
+      }
+      // Optionnel : feedback visuel
+      btn.textContent = 'ALT/TITLE natifs restaurés (sauvegarder le post)';
+      btn.disabled = true;
     });
   });
   document.querySelectorAll(".aam-edit-featured-alt").forEach(function(checkbox){
@@ -81,6 +107,13 @@ document.addEventListener("DOMContentLoaded",function(){
 }
 
 add_action('save_post', function($post_id) {
+    // Si demande de reset natif ALT/TITLE (champ caché JS)
+    if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
+        delete_post_meta($post_id, 'aam_featured_alt');
+        delete_post_meta($post_id, 'aam_featured_title');
+        // Optionnel : supprimer aussi tout autre meta liée à l'injection ALT/TITLE
+        return;
+    }
     // Sécurité nonce et droits
     if (!isset($_POST['aam_magic_box_nonce']) || !wp_verify_nonce($_POST['aam_magic_box_nonce'], 'aam_magic_box_save')) return;
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
