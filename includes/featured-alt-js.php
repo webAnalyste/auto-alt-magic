@@ -1,7 +1,7 @@
 <?php
 // Solution ultime : injection ALT/TITLE via JS minimal en wp_head (uniquement si aucune solution PHP native ne fonctionne)
 add_action('wp_head', function() {
-    if (!is_single() && !is_page()) return;
+    if (!is_single() && !is_page() && !is_product()) return;
     global $post;
     if (!$post) return;
     
