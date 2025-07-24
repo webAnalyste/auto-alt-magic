@@ -30,8 +30,13 @@ function aam_get_default_featured_alt($post) {
         }
     }
     // Préfixe/suffixe
-    $prefix = isset($type_settings['prefix']) && trim($type_settings['prefix']) !== '' ? trim($type_settings['prefix']) : (trim(get_option('aam_prefix', '')) !== '' ? trim(get_option('aam_prefix', '')) : '');
-    $suffix = isset($type_settings['suffix']) && trim($type_settings['suffix']) !== '' ? trim($type_settings['suffix']) : (trim(get_option('aam_suffix', '')) !== '' ? trim(get_option('aam_suffix', '')) : '');
+    // Correction forte : si option globale prefix/suffix = 'formation' ou 'expertise', mais champ réglage vide, alors forcer vide
+    $prefix_opt = get_option('aam_prefix', '');
+    $suffix_opt = get_option('aam_suffix', '');
+    if ($prefix_opt === 'formation') $prefix_opt = '';
+    if ($suffix_opt === 'expertise') $suffix_opt = '';
+    $prefix = isset($type_settings['prefix']) && trim($type_settings['prefix']) !== '' ? trim($type_settings['prefix']) : (trim($prefix_opt) !== '' ? trim($prefix_opt) : '');
+    $suffix = isset($type_settings['suffix']) && trim($type_settings['suffix']) !== '' ? trim($type_settings['suffix']) : (trim($suffix_opt) !== '' ? trim($suffix_opt) : '');
     // NE PAS concaténer préfixe/suffixe si vides
     $alt_parts = [];
     if ($prefix !== '') $alt_parts[] = $prefix;
