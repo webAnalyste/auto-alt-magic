@@ -48,14 +48,16 @@ function aam_process_post_content($post_ID, $post, $update) {
     aam_core_process_post($post_ID, $post);
 }
 
-// Préparation des hooks pour actions admin (bouton, batch, rollback)
+// Chargement des filtres ALT/TITLE côté front ET admin
+require_once AAM_PLUGIN_DIR . 'includes/featured-alt-filter.php';
+require_once AAM_PLUGIN_DIR . 'includes/alt-attributes-filter.php';
+require_once AAM_PLUGIN_DIR . 'includes/featured-alt-js.php';
+
+// Préparation des hooks pour actions admin uniquement
 if (is_admin()) {
     require_once AAM_PLUGIN_DIR . 'admin/batch.php';
     require_once AAM_PLUGIN_DIR . 'admin/metabox.php';
     require_once AAM_PLUGIN_DIR . 'admin/dashboard.php';
-    require_once AAM_PLUGIN_DIR . 'includes/featured-alt-filter.php';
-    require_once AAM_PLUGIN_DIR . 'includes/alt-attributes-filter.php';
-    require_once AAM_PLUGIN_DIR . 'includes/featured-alt-js.php';
     require_once AAM_PLUGIN_DIR . 'includes/update-checker.php';
 }
 
