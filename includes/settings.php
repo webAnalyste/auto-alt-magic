@@ -113,9 +113,23 @@ function aam_settings_page_render() {
                         <tr valign="top"
     <?php
         $tr_class = '';
-        if ($key === 'text_libre') $tr_class .= ' aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
-        if ($key === 'option_title_sync') $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
+        $tr_style = '';
+        if ($key === 'text_libre') {
+            $tr_class .= ' aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
+            // Masquer si méthode != texte_libre
+            if (($all_settings[$type]['method'] ?? '') !== 'texte_libre') {
+                $tr_style = 'display:none;';
+            }
+        }
+        if ($key === 'option_title_sync') {
+            $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
+            // Masquer si méthode = titre_image
+            if (($all_settings[$type]['method'] ?? '') === 'titre_image') {
+                $tr_style = 'display:none;';
+            }
+        }
         if ($tr_class) echo ' class="' . trim($tr_class) . '"';
+        if ($tr_style) echo ' style="' . $tr_style . '"';
     ?>
 >
                             <th scope="row"><?php echo esc_html($def['label']); ?></th>
@@ -157,36 +171,28 @@ function aam_settings_page_render() {
     </style>
     <script>
     jQuery(document).ready(function($) {
-        // Fonction d'affichage conditionnel
-        function toggleAAMFields() {
-            $('.aam-method-select').each(function() {
-                var method = $(this).val();
-                var type = $(this).data('type');
-                
-                // Champ Texte libre : visible uniquement si méthode = texte_libre
-                var textLibreRow = $('tr.aam-row-text-libre-' + type);
-                if (method === 'texte_libre') {
-                    textLibreRow.show();
-                } else {
-                    textLibreRow.hide();
-                }
-                
-                // Option ALT->TITLE : masquée si méthode = titre_image
-                var titleSyncRow = $('tr.aam-row-title-sync-' + type);
-                if (method === 'titre_image') {
-                    titleSyncRow.hide();
-                    titleSyncRow.find('input[type="checkbox"]').prop('checked', false);
-                } else {
-                    titleSyncRow.show();
-                }
-            });
-        }
-        
-        // Initial
-        toggleAAMFields();
-        
-        // Sur changement
-        $(document).on('change', '.aam-method-select', toggleAAMFields);
+        // Affichage conditionnel sur changement de méthode
+        $(document).on('change', '.aam-method-select', function() {
+            var method = $(this).val();
+            var type = $(this).data('type');
+            
+            // Champ Texte libre
+            var textLibreRow = $('tr.aam-row-text-libre-' + type);
+            if (method === 'texte_libre') {
+                textLibreRow.show();
+            } else {
+                textLibreRow.hide();
+            }
+            
+            // Option ALT->TITLE
+            var titleSyncRow = $('tr.aam-row-title-sync-' + type);
+            if (method === 'titre_image') {
+                titleSyncRow.hide();
+                titleSyncRow.find('input[type="checkbox"]').prop('checked', false);
+            } else {
+                titleSyncRow.show();
+            }
+        });
     });
     </script>
     <?php
