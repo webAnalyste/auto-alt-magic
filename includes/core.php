@@ -69,6 +69,10 @@ function aam_core_process_post($post_ID, $post) {
     // Récupérer le mode de remplacement ALT (meta post)
     $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
 
+    // Si reset natif demandé, ne rien modifier dans le contenu (aucune injection ALT/TITLE)
+    if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
+        return; // On sort sans rien toucher
+    }
     // Parcours toutes les images du contenu
     foreach ($imgs as $img) {
         $src = $img->getAttribute('src');
