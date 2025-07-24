@@ -30,8 +30,8 @@ function aam_get_default_featured_alt($post) {
         }
     }
     // Préfixe/suffixe
-    $prefix = isset($type_settings['prefix']) && $type_settings['prefix'] !== '' ? $type_settings['prefix'] : get_option('aam_prefix', '');
-    $suffix = isset($type_settings['suffix']) && $type_settings['suffix'] !== '' ? $type_settings['suffix'] : get_option('aam_suffix', '');
+    $prefix = isset($type_settings['prefix']) && trim($type_settings['prefix']) !== '' ? trim($type_settings['prefix']) : (trim(get_option('aam_prefix', '')) !== '' ? trim(get_option('aam_prefix', '')) : '');
+    $suffix = isset($type_settings['suffix']) && trim($type_settings['suffix']) !== '' ? trim($type_settings['suffix']) : (trim(get_option('aam_suffix', '')) !== '' ? trim(get_option('aam_suffix', '')) : '');
     // Génération selon la méthode
     if ($method === 'titre') {
         $alt = $titre;
