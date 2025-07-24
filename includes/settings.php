@@ -156,35 +156,37 @@ function aam_settings_page_render() {
     .aam-tab-content {background:#fff; border:1px solid #ccd0d4; border-top:none; padding:20px;}
     </style>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-    // Fonction d'affichage conditionnel
-    function updateAAMRows(type, method) {
-        // Texte libre
-        var rowTextLibre = document.querySelector('.aam-row-text-libre-' + type);
-        if (rowTextLibre) rowTextLibre.style.display = (method === 'texte_libre') ? 'table-row' : 'none';
-        // ALT->TITLE
-        var rowTitleSync = document.querySelector('.aam-row-title-sync-' + type);
-        if (rowTitleSync) {
-            rowTitleSync.style.display = (method === 'titre_image') ? 'none' : '';
-            if (method === 'titre_image') {
-                var cb = rowTitleSync.querySelector('input[type="checkbox"]');
-                if (cb) cb.checked = false;
-            }
+    jQuery(document).ready(function($) {
+        // Fonction d'affichage conditionnel
+        function toggleAAMFields() {
+            $('.aam-method-select').each(function() {
+                var method = $(this).val();
+                var type = $(this).data('type');
+                
+                // Champ Texte libre : visible uniquement si méthode = texte_libre
+                var textLibreRow = $('.aam-row-text-libre-' + type);
+                if (method === 'texte_libre') {
+                    textLibreRow.show();
+                } else {
+                    textLibreRow.hide();
+                }
+                
+                // Option ALT->TITLE : masquée si méthode = titre_image
+                var titleSyncRow = $('.aam-row-title-sync-' + type);
+                if (method === 'titre_image') {
+                    titleSyncRow.hide();
+                    titleSyncRow.find('input[type="checkbox"]').prop('checked', false);
+                } else {
+                    titleSyncRow.show();
+                }
+            });
         }
-    }
-    // Initial
-    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-        var type = sel.getAttribute('data-type');
-        updateAAMRows(type, sel.value);
-    });
-    // Sur changement
-    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-        sel.addEventListener('change', function() {
-            var type = this.getAttribute('data-type');
-            updateAAMRows(type, this.value);
-        });
-    });
-});
+        
+        // Initial
+        toggleAAMFields();
+        
+        // Sur changement
+        $(document).on('change', '.aam-method-select', toggleAAMFields);
     });
     </script>
     <?php
