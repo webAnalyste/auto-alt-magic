@@ -33,11 +33,11 @@ function aam_get_default_featured_alt($post) {
         $alt = $titre;
     } elseif ($method === 'nom_fichier') {
         $alt = $nom_image;
-    } elseif ($method === 'legende') {
-        // Récupérer la légende de la featured image (caption)
+    } elseif ($method === 'titre_image') {
+        // Récupérer le titre de la featured image (media title)
         if ($thumb_id) {
-            $caption = wp_get_attachment_caption($thumb_id);
-            $alt = !empty($caption) ? $caption : $titre; // Fallback sur titre si légende vide
+            $media_title = get_the_title($thumb_id);
+            $alt = !empty($media_title) ? $media_title : $titre; // Fallback sur titre du post si vide
         } else {
             $alt = $titre; // Fallback si pas de featured image
         }

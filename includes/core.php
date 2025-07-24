@@ -112,12 +112,12 @@ function aam_core_process_post($post_ID, $post) {
                 $alt_new = $titre;
             } elseif ($method === 'nom_fichier') {
                 $alt_new = $nom_image;
-            } elseif ($method === 'legende') {
-                // Récupérer la légende de l'image (caption)
+            } elseif ($method === 'titre_image') {
+                // Récupérer le titre de l'image (media title)
                 $attachment_id = attachment_url_to_postid($src);
                 if ($attachment_id) {
-                    $caption = wp_get_attachment_caption($attachment_id);
-                    $alt_new = !empty($caption) ? $caption : $titre; // Fallback sur titre si légende vide
+                    $media_title = get_the_title($attachment_id);
+                    $alt_new = !empty($media_title) ? $media_title : $titre; // Fallback sur titre du post si vide
                 } else {
                     $alt_new = $titre; // Fallback si attachment non trouvé
                 }

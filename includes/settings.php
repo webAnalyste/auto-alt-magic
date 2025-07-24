@@ -61,7 +61,7 @@ function aam_settings_page_render() {
         'method' => ['label' => __('Méthode de génération ALT', 'auto-alt-magic'), 'type' => 'select', 'choices' => [
             'titre' => __('Titre du post', 'auto-alt-magic'),
             'nom_fichier' => __('Nom du fichier image', 'auto-alt-magic'),
-            'legende' => __('Légende de l\'image (caption)', 'auto-alt-magic'),
+            'titre_image' => __('Titre de l\'image (media title)', 'auto-alt-magic'),
             'texte_libre' => __('Texte libre avec balises dynamiques', 'auto-alt-magic'),
         ]],
         'text_libre' => ['label' => __('Texte libre', 'auto-alt-magic'), 'type' => 'text'],
