@@ -26,13 +26,45 @@ add_action('wp_head', function() {
     
     echo "<script>
 document.addEventListener('DOMContentLoaded', function() {
-    var imgs = document.querySelectorAll('img');
-    for (var i = 0; i < imgs.length; i++) {
-        var img = imgs[i];
-        if (img.src && (img.src.indexOf('" . esc_js($thumb_filename) . "') !== -1 || img.srcset && img.srcset.indexOf('" . esc_js($thumb_filename) . "') !== -1)) {
-            img.alt = '" . $alt_escaped . "';
-            if (!img.title) img.title = '" . $alt_escaped . "';
+    console.log('AAM: Recherche featured image ID: " . $thumb_id . "');
+    var altText = '" . $alt_escaped . "';
+    var found = false;
+    
+    // Méthode 1: par attachment-id (data-attachment-id)
+    var imgById = document.querySelector('img[data-attachment-id=\"" . $thumb_id . "\"]');
+    if (imgById) {
+        imgById.alt = altText;
+        if (!imgById.title) imgById.title = altText;
+        console.log('AAM: ALT injecté via attachment-id');
+        found = true;
+    }
+    
+    // Méthode 2: par classe wp-post-image
+    var imgByClass = document.querySelector('img.wp-post-image');
+    if (imgByClass && !found) {
+        imgByClass.alt = altText;
+        if (!imgByClass.title) imgByClass.title = altText;
+        console.log('AAM: ALT injecté via wp-post-image');
+        found = true;
+    }
+    
+    // Méthode 3: par nom de fichier (fallback)
+    if (!found) {
+        var imgs = document.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) {
+            var img = imgs[i];
+            if (img.src && (img.src.indexOf('" . esc_js($thumb_filename) . "') !== -1 || (img.srcset && img.srcset.indexOf('" . esc_js($thumb_filename) . "') !== -1))) {
+                img.alt = altText;
+                if (!img.title) img.title = altText;
+                console.log('AAM: ALT injecté via filename: " . esc_js($thumb_filename) . "');
+                found = true;
+                break;
+            }
         }
+    }
+    
+    if (!found) {
+        console.log('AAM: Aucune featured image trouvée pour injection ALT');
     }
 });
 </script>";
