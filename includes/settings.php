@@ -164,7 +164,7 @@ function aam_settings_page_render() {
                 var type = $(this).data('type');
                 
                 // Champ Texte libre : visible uniquement si méthode = texte_libre
-                var textLibreRow = $('.aam-row-text-libre-' + type);
+                var textLibreRow = $('tr.aam-row-text-libre-' + type);
                 if (method === 'texte_libre') {
                     textLibreRow.show();
                 } else {
@@ -172,7 +172,7 @@ function aam_settings_page_render() {
                 }
                 
                 // Option ALT->TITLE : masquée si méthode = titre_image
-                var titleSyncRow = $('.aam-row-title-sync-' + type);
+                var titleSyncRow = $('tr.aam-row-title-sync-' + type);
                 if (method === 'titre_image') {
                     titleSyncRow.hide();
                     titleSyncRow.find('input[type="checkbox"]').prop('checked', false);
