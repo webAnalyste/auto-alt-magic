@@ -46,6 +46,7 @@ function aam_process_post_content($post_ID, $post, $update) {
     if ($post->post_type !== 'post' && $post->post_type !== 'page' && $post->post_type !== 'product') return;
     // Traitement du contenu (core.php)
     require_once AAM_PLUGIN_DIR . 'includes/core.php';
+    require_once AAM_PLUGIN_DIR . 'includes/featured-alt-filter.php';
     aam_core_process_post($post_ID, $post);
 }
 
