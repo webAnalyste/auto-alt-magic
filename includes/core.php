@@ -161,7 +161,8 @@ function aam_core_process_post($post_ID, $post) {
                     $do_replace = true;
                     break;
                 case 'short':
-                    $do_replace = (strlen(trim($alt)) < 30);
+                case 'short20':
+                    $do_replace = (strlen(trim($alt)) < 20);
                     break;
                 case 'empty':
                 default:

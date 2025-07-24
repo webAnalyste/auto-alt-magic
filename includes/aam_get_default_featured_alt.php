@@ -9,8 +9,9 @@
 function aam_get_default_featured_alt($post) {
     $type = $post->post_type;
     $type_settings = get_option('aam_settings_' . $type, []);
-    $method = $type_settings['method'] ?? get_option('aam_method', 'titre');
-    $text_libre = $type_settings['text_libre'] ?? get_option('aam_text_libre', '');
+    // Correction : si tableau vide ou clé manquante, fallback global explicite
+    $method = isset($type_settings['method']) && $type_settings['method'] !== '' ? $type_settings['method'] : get_option('aam_method', 'titre');
+    $text_libre = isset($type_settings['text_libre']) && $type_settings['text_libre'] !== '' ? $type_settings['text_libre'] : get_option('aam_text_libre', '');
     $titre = get_the_title($post->ID);
     $mot_cle = get_post_meta($post->ID, 'aam_focus_keyword', true);
     if (!$mot_cle) {
@@ -28,6 +29,9 @@ function aam_get_default_featured_alt($post) {
             $nom_image = basename($img_url);
         }
     }
+    // Préfixe/suffixe
+    $prefix = isset($type_settings['prefix']) && $type_settings['prefix'] !== '' ? $type_settings['prefix'] : get_option('aam_prefix', '');
+    $suffix = isset($type_settings['suffix']) && $type_settings['suffix'] !== '' ? $type_settings['suffix'] : get_option('aam_suffix', '');
     // Génération selon la méthode
     if ($method === 'titre') {
         $alt = $titre;
@@ -53,5 +57,8 @@ function aam_get_default_featured_alt($post) {
     } else {
         $alt = $titre;
     }
+    // Application du préfixe/suffixe comme dans le core
+    if ($prefix) $alt = $prefix . ' ' . $alt;
+    if ($suffix) $alt = $alt . ' ' . $suffix;
     return trim($alt);
 }

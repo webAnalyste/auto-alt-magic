@@ -73,7 +73,7 @@ function aam_settings_page_render() {
                 'none' => __('Ne rien remplacer', 'auto-alt-magic'),
                 'empty' => __('Remplacer si ALT vide', 'auto-alt-magic'),
                 'all' => __('Remplacer tous les ALT', 'auto-alt-magic'),
-                'short' => __('Remplacer si ALT < 30 caractères', 'auto-alt-magic'),
+                'short20' => __('Remplacer si ALT < 20 caractères', 'auto-alt-magic'),
             ]
         ],
         'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text'],
@@ -144,7 +144,7 @@ function aam_settings_page_render() {
     <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> class="aam-title-sync-checkbox aam-title-sync-checkbox-<?php echo esc_attr($type); ?>" data-type="<?php echo esc_attr($type); ?>" style="<?php echo ($all_settings[$type]['method'] ?? '') === 'titre_image' && $key === 'option_title_sync' ? 'display:none;' : '' ?>" />
 <?php else: ?>
     <div class="aam-text-libre-wrap aam-text-libre-<?php echo esc_attr($type); ?>">
-        <input type="text" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($all_settings[$type][$key] ?? ''); ?>" style="width:100%" />
+        <input type="text" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="<?php echo esc_attr($all_settings[$type][$key] ?? ''); ?>" style="width:200px;max-width:100%;" />
         <br><small><?php _e('Balises supportées', 'auto-alt-magic'); ?> : {{mot_cle}}, {{titre}}, {{nom_image}}, {{lang}}, {{type_post}}</small>
     </div>
 <?php endif; ?>

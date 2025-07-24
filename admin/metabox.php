@@ -20,20 +20,57 @@ function aam_magic_metabox($post) {
         $featured_alt = $default_alt;
     }
     echo '<p><strong>' . __('ALT de l’image à la une', 'auto-alt-magic') . '</strong><br />';
-    echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT généré automatiquement selon le type de contenu" /></p>';
+    echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT généré automatiquement selon le type de contenu" readonly class="aam-featured-alt-input" />';
+    echo '<br /><label><input type="checkbox" class="aam-edit-featured-alt" /> ' . __('Éditer le champ ALT manuellement', 'auto-alt-magic') . '</label></p>';
+    // Affichage valeur globale si personnalisé
+    if (!empty($featured_alt) && $featured_alt !== $default_alt) {
+        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
+    } else {
+        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
+    }
+    // Affichage valeur personnalisée précédente (après reset)
+    echo '<div class="aam-previous-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Ancienne valeur personnalisée :', 'auto-alt-magic') . '</span> <span class="aam-previous-alt-txt"></span></div>';
     echo '<p class="description">' . __('Ce champ est généré automatiquement selon les réglages globaux du type de contenu, mais peut être écrasé ici par un texte libre (prioritaire).', 'auto-alt-magic') . '</p>';
 
     // Bouton reset ALT manuel
     echo '<button type="button" class="button aam-reset-featured-alt" data-default-alt="' . esc_attr($default_alt) . '">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
 
-// Injection JS robuste sans échappement ambigu
+// Injection JS robuste UX
 ?>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
   document.querySelectorAll(".aam-reset-featured-alt").forEach(function(btn){
     btn.addEventListener("click",function(){
-      var input = btn.closest('.postbox').querySelector('input[name="aam_featured_alt"]');
-      if(input) input.value = btn.getAttribute("data-default-alt");
+      var box = btn.closest('.postbox');
+      var input = box.querySelector('input[name="aam_featured_alt"]');
+      var prevAltInfo = box.querySelector('.aam-previous-alt-info');
+      var prevAltTxt = box.querySelector('.aam-previous-alt-txt');
+      if(input) {
+        var previous = input.value;
+        input.value = btn.getAttribute("data-default-alt");
+        if(previous && previous !== btn.getAttribute("data-default-alt")) {
+          prevAltTxt.textContent = previous;
+          prevAltInfo.style.display = '';
+        } else {
+          prevAltInfo.style.display = 'none';
+        }
+      }
+    });
+  });
+  document.querySelectorAll(".aam-edit-featured-alt").forEach(function(checkbox){
+    var input = checkbox.closest('p').querySelector('input[name="aam_featured_alt"]');
+    var box = checkbox.closest('.postbox');
+    var defaultAltInfo = box.querySelector('.aam-default-alt-info');
+    checkbox.addEventListener("change",function(){
+      if(checkbox.checked){
+        input.removeAttribute('readonly');
+        input.focus();
+        if(defaultAltInfo) defaultAltInfo.style.display = '';
+      }else{
+        input.setAttribute('readonly','readonly');
+        input.value = box.querySelector('.aam-reset-featured-alt').getAttribute('data-default-alt');
+        if(defaultAltInfo) defaultAltInfo.style.display = 'none';
+      }
     });
   });
 });
