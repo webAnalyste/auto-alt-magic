@@ -112,6 +112,15 @@ function aam_core_process_post($post_ID, $post) {
                 $alt_new = $titre;
             } elseif ($method === 'nom_fichier') {
                 $alt_new = $nom_image;
+            } elseif ($method === 'legende') {
+                // Récupérer la légende de l'image (caption)
+                $attachment_id = attachment_url_to_postid($src);
+                if ($attachment_id) {
+                    $caption = wp_get_attachment_caption($attachment_id);
+                    $alt_new = !empty($caption) ? $caption : $titre; // Fallback sur titre si légende vide
+                } else {
+                    $alt_new = $titre; // Fallback si attachment non trouvé
+                }
             } elseif ($method === 'texte_libre') {
                 require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
                 $alt_new = aam_parse_template_tags($text_libre, [

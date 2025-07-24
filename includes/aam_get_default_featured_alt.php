@@ -33,6 +33,14 @@ function aam_get_default_featured_alt($post) {
         $alt = $titre;
     } elseif ($method === 'nom_fichier') {
         $alt = $nom_image;
+    } elseif ($method === 'legende') {
+        // Récupérer la légende de la featured image (caption)
+        if ($thumb_id) {
+            $caption = wp_get_attachment_caption($thumb_id);
+            $alt = !empty($caption) ? $caption : $titre; // Fallback sur titre si légende vide
+        } else {
+            $alt = $titre; // Fallback si pas de featured image
+        }
     } elseif ($method === 'texte_libre') {
         require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
         $alt = aam_parse_template_tags($text_libre, [
