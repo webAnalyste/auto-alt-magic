@@ -47,7 +47,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imgByClass && !found) {
         imgByClass.alt = altText;
         if (!imgByClass.title) imgByClass.title = altText;
-        console.log('AAM: ALT injecté via wp-post-image');
+        console.log('AAM: ALT injecté via wp-post-image - Valeur: ' + imgByClass.alt);
+        // Vérification immédiate
+        setTimeout(function() {
+            console.log('AAM: Vérification ALT après 100ms: ' + imgByClass.alt);
+            if (!imgByClass.alt || imgByClass.alt === '') {
+                imgByClass.alt = altText;
+                console.log('AAM: ALT réinjecté après écrasement WooCommerce');
+            }
+        }, 100);
         found = true;
     }
     
