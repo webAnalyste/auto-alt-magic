@@ -24,7 +24,22 @@ function aam_magic_metabox($post) {
     echo '<p class="description">' . __('Ce champ est généré automatiquement selon les réglages globaux du type de contenu, mais peut être écrasé ici par un texte libre (prioritaire).', 'auto-alt-magic') . '</p>';
 
     // Bouton reset ALT manuel
-    echo '<button type="button" class="button" onclick="document.querySelector(\'input[name=\'aam_featured_alt\']\').value = ' . json_encode($default_alt) . ';">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
+    echo '<button type="button" class="button aam-reset-featured-alt" data-default-alt="' . esc_attr($default_alt) . '">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
+
+// Injection JS robuste sans échappement ambigu
+?>
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+  document.querySelectorAll(".aam-reset-featured-alt").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var input = btn.closest('.postbox').querySelector('input[name="aam_featured_alt"]');
+      if(input) input.value = btn.getAttribute("data-default-alt");
+    });
+  });
+});
+</script>
+<?php
+
 
 }
 

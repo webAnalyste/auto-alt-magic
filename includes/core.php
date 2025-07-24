@@ -78,11 +78,36 @@ function aam_core_process_post($post_ID, $post) {
         if ($src) {
             $nom_image = pathinfo(parse_url($src, PHP_URL_PATH), PATHINFO_FILENAME);
         }
-        // Cas featured image avec ALT manuel
-        if ($is_featured && !empty($featured_alt)) {
-            $alt_new = $featured_alt;
+        // Cas featured image : priorité ALT manuel > ALT global > fallback
+        if ($is_featured) {
+            if (!empty($featured_alt)) {
+                $alt_new = $featured_alt;
+            } else {
+                // ALT global calculé via aam_get_default_featured_alt
+                if (function_exists('aam_get_default_featured_alt')) {
+                    $alt_new = aam_get_default_featured_alt($post);
+                } else {
+                    // fallback logique existante
+                    if ($method === 'titre') {
+                        $alt_new = $titre;
+                    } elseif ($method === 'nom_fichier') {
+                        $alt_new = $nom_image;
+                    } elseif ($method === 'texte_libre') {
+                        require_once AAM_PLUGIN_DIR . 'includes/template-parser.php';
+                        $alt_new = aam_parse_template_tags($text_libre, [
+                            'mot_cle' => $focus_keyword,
+                            'titre' => $titre,
+                            'nom_image' => $nom_image,
+                            'lang' => $lang,
+                            'type_post' => $type_post,
+                        ]);
+                    } else {
+                        $alt_new = $titre;
+                    }
+                }
+            }
         } else {
-            // Génération selon méthode
+            // Génération selon méthode pour toutes les autres images
             if ($method === 'titre') {
                 $alt_new = $titre;
             } elseif ($method === 'nom_fichier') {
