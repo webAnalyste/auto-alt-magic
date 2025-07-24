@@ -69,6 +69,23 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!found) {
         console.log('AAM: Aucune featured image trouvée pour injection ALT');
     }
+    
+    // MutationObserver pour réinjecter ALT si WooCommerce modifie l'image
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                var imgs = document.querySelectorAll('img.wp-post-image, img[data-attachment-id=\"" . $thumb_id . "\"]');
+                imgs.forEach(function(img) {
+                    if (!img.alt || img.alt === '') {
+                        img.alt = altText;
+                        if (!img.title) img.title = altText;
+                        console.log('AAM: ALT réinjecté après modification DOM');
+                    }
+                });
+            }
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['alt', 'src'] });
 });
 </script>";
 }, 999);
