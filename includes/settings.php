@@ -113,7 +113,7 @@ function aam_settings_page_render() {
                         <tr valign="top"
     <?php
         $tr_class = '';
-        if ($key === 'text_libre') $tr_class .= 'aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
+        if ($key === 'text_libre') $tr_class .= ' aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
         if ($key === 'option_title_sync') $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
         if ($tr_class) echo ' class="' . trim($tr_class) . '"';
     ?>
