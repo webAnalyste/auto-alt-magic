@@ -110,7 +110,14 @@ function aam_settings_page_render() {
                     <h2><?php echo esc_html($obj->labels->singular_name); ?></h2>
                     <table class="form-table">
                         <?php foreach ($params as $key => $def): ?>
-                        <tr valign="top"<?php if ($key === 'text_libre') { echo ' class="aam-row-text-libre aam-row-text-libre-' . esc_attr($type) . '"'; } ?>>
+                        <tr valign="top"
+    <?php
+        $tr_class = '';
+        if ($key === 'text_libre') $tr_class .= 'aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
+        if ($key === 'option_title_sync') $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
+        if ($tr_class) echo ' class="' . trim($tr_class) . '"';
+    ?>
+>
                             <th scope="row"><?php echo esc_html($def['label']); ?></th>
                             <td>
                                 <?php if ($def['type'] === 'select'): ?>
@@ -156,11 +163,14 @@ function aam_settings_page_render() {
         var show = sel.value === 'texte_libre';
         var row = document.querySelector('.aam-row-text-libre-' + type);
         if (row) row.style.display = show ? 'table-row' : 'none';
-        // Hide/show ALT->TITLE option if needed
-        var titleSyncCheckbox = document.querySelector('.aam-title-sync-checkbox-' + type);
-        if (titleSyncCheckbox && titleSyncCheckbox.name.includes('option_title_sync')) {
-            titleSyncCheckbox.style.display = (sel.value === 'titre_image') ? 'none' : '';
-            if (sel.value === 'titre_image') titleSyncCheckbox.checked = false;
+        // Hide/show ALT->TITLE row if needed
+        var titleSyncRow = document.querySelector('.aam-row-title-sync-' + type);
+        if (titleSyncRow) {
+            titleSyncRow.style.display = (sel.value === 'titre_image') ? 'none' : '';
+            if (sel.value === 'titre_image') {
+                var cb = titleSyncRow.querySelector('input[type="checkbox"]');
+                if (cb) cb.checked = false;
+            }
         }
     });
     // On select change
@@ -170,15 +180,18 @@ function aam_settings_page_render() {
             var show = this.value === 'texte_libre';
             var row = document.querySelector('.aam-row-text-libre-' + type);
             if (row) row.style.display = show ? 'table-row' : 'none';
-            // Hide/show ALT->TITLE option if needed
-            var titleSyncCheckbox = document.querySelector('.aam-title-sync-checkbox-' + type);
-            if (titleSyncCheckbox && titleSyncCheckbox.name.includes('option_title_sync')) {
-                titleSyncCheckbox.style.display = (this.value === 'titre_image') ? 'none' : '';
-                if (this.value === 'titre_image') titleSyncCheckbox.checked = false;
+            // Hide/show ALT->TITLE row if needed
+            var titleSyncRow = document.querySelector('.aam-row-title-sync-' + type);
+            if (titleSyncRow) {
+                titleSyncRow.style.display = (this.value === 'titre_image') ? 'none' : '';
+                if (this.value === 'titre_image') {
+                    var cb = titleSyncRow.querySelector('input[type="checkbox"]');
+                    if (cb) cb.checked = false;
+                }
             }
         });
     });
-});        });
+});
     });
     </script>
     <?php
