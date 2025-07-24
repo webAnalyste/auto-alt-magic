@@ -157,38 +157,31 @@ function aam_settings_page_render() {
     </style>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-    // Initial hide/show on load
-    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-        var type = sel.getAttribute('data-type');
-        var show = sel.value === 'texte_libre';
-        var row = document.querySelector('.aam-row-text-libre-' + type);
-        if (row) row.style.display = show ? 'table-row' : 'none';
-        // Hide/show ALT->TITLE row if needed
-        var titleSyncRow = document.querySelector('.aam-row-title-sync-' + type);
-        if (titleSyncRow) {
-            titleSyncRow.style.display = (sel.value === 'titre_image') ? 'none' : '';
-            if (sel.value === 'titre_image') {
-                var cb = titleSyncRow.querySelector('input[type="checkbox"]');
+    // Fonction d'affichage conditionnel
+    function updateAAMRows(type, method) {
+        // Texte libre
+        var rowTextLibre = document.querySelector('.aam-row-text-libre-' + type);
+        if (rowTextLibre) rowTextLibre.style.display = (method === 'texte_libre') ? 'table-row' : 'none';
+        // ALT->TITLE
+        var rowTitleSync = document.querySelector('.aam-row-title-sync-' + type);
+        if (rowTitleSync) {
+            rowTitleSync.style.display = (method === 'titre_image') ? 'none' : '';
+            if (method === 'titre_image') {
+                var cb = rowTitleSync.querySelector('input[type="checkbox"]');
                 if (cb) cb.checked = false;
             }
         }
-    });
-    // On select change
+    }
+    // Initial
     document.querySelectorAll('.aam-method-select').forEach(function(sel) {
-        sel.addEventListener('change', function(e) {
+        var type = sel.getAttribute('data-type');
+        updateAAMRows(type, sel.value);
+    });
+    // Sur changement
+    document.querySelectorAll('.aam-method-select').forEach(function(sel) {
+        sel.addEventListener('change', function() {
             var type = this.getAttribute('data-type');
-            var show = this.value === 'texte_libre';
-            var row = document.querySelector('.aam-row-text-libre-' + type);
-            if (row) row.style.display = show ? 'table-row' : 'none';
-            // Hide/show ALT->TITLE row if needed
-            var titleSyncRow = document.querySelector('.aam-row-title-sync-' + type);
-            if (titleSyncRow) {
-                titleSyncRow.style.display = (this.value === 'titre_image') ? 'none' : '';
-                if (this.value === 'titre_image') {
-                    var cb = titleSyncRow.querySelector('input[type="checkbox"]');
-                    if (cb) cb.checked = false;
-                }
-            }
+            updateAAMRows(type, this.value);
         });
     });
 });
