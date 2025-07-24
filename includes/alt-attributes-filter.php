@@ -3,6 +3,10 @@
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
     global $post;
     if (!$post || !isset($post->ID)) return $attr;
+    // Si demande explicite de reset natif (meta temporaire post save)
+    if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
+        return $attr; // Ne rien surcharger, laisser la valeur native
+    }
     // ALT manuel (metabox)
     $manual_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
     // ALT global (fallback)
