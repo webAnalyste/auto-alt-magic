@@ -76,8 +76,9 @@ function aam_core_process_post($post_ID, $post) {
     $lang = get_locale();
     $type_post = $post->post_type;
 
-    // Récupérer le mode de remplacement ALT (meta post)
-    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
+    // Récupérer le mode de remplacement ALT (réglages globaux par type > meta post > fallback)
+    $alt_replace_mode = isset($type_settings['alt_replace_mode']) ? $type_settings['alt_replace_mode'] : 
+        (get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty');
 
     // Si reset natif demandé, nettoyer le HTML : supprimer tous les attributs alt et title custom dans les <img>
     if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
