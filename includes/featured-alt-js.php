@@ -1,9 +1,14 @@
 <?php
 // Solution ultime : injection ALT/TITLE via JS minimal en wp_head (uniquement si aucune solution PHP native ne fonctionne)
 add_action('wp_head', function() {
+    // DÉSACTIVATION TOTALE sur archives pour éviter tout plantage
+    if (is_archive() || is_category() || is_tag() || is_tax()) return;
     if (!is_single() && !is_page() && !is_product()) return;
     global $post;
-    if (!$post) return;
+    if (!is_object($post) || !($post instanceof WP_Post) || !isset($post->ID)) {
+        if (defined('WP_DEBUG') && WP_DEBUG) error_log('[AAM] Contexte post anormal dans wp_head JS (archive ?): ' . print_r($post, true));
+        return;
+    }
     
     // Test de base : vérifier que le hook wp_head fonctionne
     echo "<!-- AAM: Hook wp_head actif pour post ID: {$post->ID} -->\n";
