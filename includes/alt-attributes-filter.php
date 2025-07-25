@@ -6,7 +6,10 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
     // Si demande explicite de reset natif OU mode "ne rien remplacer" (aam_alt_replace_mode = 'none'), ne rien surcharger
     $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true);
     if ((isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') || $alt_replace_mode === 'none') {
-        return $attr; // Ne rien surcharger, laisser la valeur native
+        // Forcer retour strict à la valeur native (aucune injection ni fallback)
+        unset($attr['alt']);
+        unset($attr['title']);
+        return $attr;
     }
     // ALT manuel (metabox)
     $manual_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
@@ -14,9 +17,8 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
     if (empty($manual_alt) && function_exists('aam_get_default_featured_alt')) {
         $manual_alt = aam_get_default_featured_alt($post);
     }
-    if (empty($manual_alt)) {
-        $manual_alt = get_the_title($post->ID);
-    }
+    // Si pas de meta ni de fallback global, NE PAS injecter le titre du post, laisser la valeur native
+    // (supprimer ce fallback pour n'injecter que si meta ou réglage global)
     // Appliquer ALT/TITLE uniquement si l’image est la featured ou dans le contenu du post courant
     $thumb_id = get_post_thumbnail_id($post->ID);
     if ($attachment->ID == $thumb_id || strpos($post->post_content, wp_get_attachment_url($attachment->ID)) !== false) {
