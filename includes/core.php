@@ -69,9 +69,26 @@ function aam_core_process_post($post_ID, $post) {
     // Récupérer le mode de remplacement ALT (meta post)
     $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true) ?: 'empty';
 
-    // Si reset natif demandé, ne rien modifier dans le contenu (aucune injection ALT/TITLE)
+    // Si reset natif demandé, nettoyer le HTML : supprimer tous les attributs alt et title custom dans les <img>
     if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
-        return; // On sort sans rien toucher
+        // Nettoyage du HTML : suppression attributs alt et title sur toutes les <img>
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $imgs = $dom->getElementsByTagName('img');
+        foreach ($imgs as $img) {
+            $img->removeAttribute('alt');
+            $img->removeAttribute('title');
+        }
+        $new_content = $dom->saveHTML();
+        // Mise à jour du post_content nettoyé
+        remove_action('save_post', 'aam_process_post_content', 20);
+        wp_update_post([
+            'ID' => $post_ID,
+            'post_content' => $new_content,
+        ]);
+        add_action('save_post', 'aam_process_post_content', 20, 3);
+        return;
     }
     // Parcours toutes les images du contenu
     foreach ($imgs as $img) {
