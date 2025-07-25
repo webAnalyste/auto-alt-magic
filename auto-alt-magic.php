@@ -2,7 +2,7 @@
 /*
 Plugin Name: Auto ALT Magic
 Description: Génération et injection automatique des attributs ALT et TITLE dans les balises <img> des contenus WordPress (posts, pages, produits, etc.).
-Version: 1.0.2
+Version: 1.0.3
 Author: webAnalyste / Cascade
 Text Domain: auto-alt-magic
 Domain Path: /languages

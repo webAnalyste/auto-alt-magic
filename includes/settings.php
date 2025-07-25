@@ -67,11 +67,11 @@ function aam_settings_page_render() {
         'text_libre' => ['label' => __('Texte libre personnalisé', 'auto-alt-magic'), 'type' => 'text', 'tooltip' => __('Utilisez des balises dynamiques comme {{mot_cle}}, {{titre}}, etc. S’applique au prochain enregistrement du post.', 'auto-alt-magic')],
         'option_title_sync' => ['label' => __('Copier ALT vers TITLE si vide', 'auto-alt-magic'), 'type' => 'checkbox', 'tooltip' => __('Si TITLE est absent, il sera automatiquement dupliqué à partir de l’ALT.', 'auto-alt-magic')],
         'alt_replace_mode' => [
-            'label' => __('Politique de remplacement ALT', 'auto-alt-magic'),
+            'label' => __('Règle de remplacement ALT', 'auto-alt-magic'),
             'type' => 'select',
             'tooltip' => __('Détermine quand le plugin remplace l’ALT existant. Effet immédiat sur la featured image et galeries dynamiques. Pour les images intégrés dans les contenus, nécessite une sauvegarde du post ou traitement par lot (payant).', 'auto-alt-magic'),
             'choices' => [
-                'none' => __('Ne jamais modifier (préserve le natif)', 'auto-alt-magic'),
+                'none' => __('Ne pas remplacer', 'auto-alt-magic'),
                 'empty' => __('Remplacer si ALT vide', 'auto-alt-magic'),
                 'all' => __('Toujours remplacer', 'auto-alt-magic'),
                 'short20' => __('Remplacer si ALT < 20 caractères', 'auto-alt-magic'),
