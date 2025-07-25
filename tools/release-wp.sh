@@ -15,10 +15,10 @@ REPO="https://github.com/webAnalyste/auto-alt-magic.git"
 BRANCH="main"
 
 # 1. Bump version plugin principal
-sed -i '' "s/^Version: .*/Version: $VERSION/" auto-alt-magic/auto-alt-magic.php
+sed -i '' "s/^Version: .*/Version: $VERSION/" auto-alt-magic.php
 
 # 2. Bump update.json
-cat > auto-alt-magic/update.json <<EOL
+cat > update.json <<EOL
 {
   "version": "$VERSION",
   "download_url": "https://github.com/webAnalyste/auto-alt-magic/releases/download/v$VERSION/$ZIP",
