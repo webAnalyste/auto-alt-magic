@@ -3,8 +3,9 @@
 add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
     global $post;
     if (!$post || !isset($post->ID)) return $attr;
-    // Si demande explicite de reset natif (meta temporaire post save)
-    if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
+    // Si demande explicite de reset natif OU mode "ne rien remplacer" (aam_alt_replace_mode = 'none'), ne rien surcharger
+    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true);
+    if ((isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') || $alt_replace_mode === 'none') {
         return $attr; // Ne rien surcharger, laisser la valeur native
     }
     // ALT manuel (metabox)
