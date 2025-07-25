@@ -13,6 +13,16 @@ function aam_core_process_post($post_ID, $post) {
     // Sécurité : ne traiter que les post/page/produit publiés ou en brouillon
     if (!in_array($post->post_type, ['post', 'page', 'product'])) return;
     
+    // SI mode global 'ne rien remplacer' OU reset natif, désactiver complètement le traitement du post_content
+    $type = $post->post_type;
+    $type_settings = get_option('aam_settings_' . $type, []);
+    $alt_replace_mode = isset($type_settings['alt_replace_mode']) ? $type_settings['alt_replace_mode'] : 'empty';
+    $is_reset = get_post_meta($post_ID, 'aam_reset_native_alt', true);
+    
+    if ($alt_replace_mode === 'none' || $is_reset === '1') {
+        return;
+    }
+    
     $content = $post->post_content;
     if (empty($content)) return;
 

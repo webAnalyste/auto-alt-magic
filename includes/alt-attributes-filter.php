@@ -1,14 +1,21 @@
 <?php
 // Surcharge native ALT/TITLE sur toutes les images (featured, galeries, contenu, WooCommerce...)
-add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $size) {
+// Hook conditionnel : ne s'attacher que si nécessaire
+add_action('init', function() {
+    add_filter('wp_get_attachment_image_attributes', 'aam_filter_image_attributes', 20, 3);
+});
+
+function aam_filter_image_attributes($attr, $attachment, $size) {
     global $post;
     if (!$post || !isset($post->ID)) return $attr;
-    // Si demande explicite de reset natif OU mode "ne rien remplacer" (aam_alt_replace_mode = 'none'), ne rien surcharger
-    $alt_replace_mode = get_post_meta($post->ID, 'aam_alt_replace_mode', true);
-    if ((isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') || $alt_replace_mode === 'none') {
-        // Forcer retour strict à la valeur native (aucune injection ni fallback)
-        unset($attr['alt']);
-        unset($attr['title']);
+    
+    // SI mode global 'ne rien remplacer' OU reset natif, désactiver complètement le filtre
+    $type = $post->post_type;
+    $type_settings = get_option('aam_settings_' . $type, []);
+    $alt_replace_mode = isset($type_settings['alt_replace_mode']) ? $type_settings['alt_replace_mode'] : 'empty';
+    $is_reset = get_post_meta($post->ID, 'aam_reset_native_alt', true);
+    
+    if ($alt_replace_mode === 'none' || $is_reset === '1') {
         return $attr;
     }
     // ALT manuel (metabox)
@@ -28,4 +35,4 @@ add_filter('wp_get_attachment_image_attributes', function($attr, $attachment, $s
         }
     }
     return $attr;
-}, 20, 3);
+}

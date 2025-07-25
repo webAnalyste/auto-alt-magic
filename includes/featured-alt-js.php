@@ -8,6 +8,15 @@ add_action('wp_head', function() {
     // Test de base : vérifier que le hook wp_head fonctionne
     echo "<!-- AAM: Hook wp_head actif pour post ID: {$post->ID} -->\n";
     
+    // Désactivation JS si reset natif OU mode 'ne rien remplacer' (par type de contenu)
+    $type = $post->post_type;
+    $type_settings = get_option('aam_settings_' . $type, []);
+    $alt_replace_mode = isset($type_settings['alt_replace_mode']) ? $type_settings['alt_replace_mode'] : 'empty';
+    $is_reset = get_post_meta($post->ID, 'aam_reset_native_alt', true);
+    if ($alt_replace_mode === 'none' || $is_reset === '1') {
+        return;
+    }
+    
     // ALT manuel (metabox)
     $manual_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
     // ALT global (fallback)
