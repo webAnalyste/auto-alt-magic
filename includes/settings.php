@@ -142,11 +142,25 @@ function aam_settings_page_render() {
     </th>
                             <td>
                                 <?php if ($def['type'] === 'select'): ?>
-    <select name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" class="aam-method-select" data-type="<?php echo esc_attr($type); ?>">
+    <select name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" class="aam-method-select" data-type="<?php echo esc_attr($type); ?>" id="aam-alt-replace-mode-<?php echo esc_attr($type); ?>-<?php echo esc_attr($key); ?>">
         <?php foreach ($def['choices'] as $val => $lab): ?>
             <option value="<?php echo esc_attr($val); ?>" <?php selected(($all_settings[$type][$key] ?? '') == $val); ?>><?php echo esc_html($lab); ?></option>
         <?php endforeach; ?>
     </select>
+    <?php if ($key === 'alt_replace_mode'): ?>
+        <div class="aam-alt-replace-none-msg" style="display:<?php echo (($all_settings[$type]['alt_replace_mode'] ?? '') === 'none') ? 'block' : 'none'; ?>;margin-top:4px;font-size:11px;color:#666;">
+            <?php _e('Restaure les ALT d’origine des images à la une et bloque les modifs des images intégrées.<br>Pour restaurer les ALT : « Reset » dans chaque post ou traitement par lot (Pro).', 'auto-alt-magic'); ?>
+        </div>
+        <script>document.addEventListener('DOMContentLoaded',function(){
+            var sel=document.getElementById('aam-alt-replace-mode-<?php echo esc_attr($type); ?>-<?php echo esc_attr($key); ?>');
+            var msg=sel.parentNode.querySelector('.aam-alt-replace-none-msg');
+            if(sel&&msg){
+                sel.addEventListener('change',function(){
+                    msg.style.display=(sel.value==='none')?'block':'none';
+                });
+            }
+        });</script>
+    <?php endif; ?>
 <?php elseif ($def['type'] === 'checkbox'): ?>
     <input type="checkbox" name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" value="1" <?php checked(!empty($all_settings[$type][$key])); ?> class="aam-title-sync-checkbox aam-title-sync-checkbox-<?php echo esc_attr($type); ?>" data-type="<?php echo esc_attr($type); ?>" style="<?php echo ($all_settings[$type]['method'] ?? '') === 'titre_image' && $key === 'option_title_sync' ? 'display:none;' : '' ?>" />
 <?php else: ?>
