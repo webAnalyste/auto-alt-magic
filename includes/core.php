@@ -81,6 +81,8 @@ function aam_core_process_post($post_ID, $post) {
             $img->removeAttribute('title');
         }
         $new_content = $dom->saveHTML();
+        // Suppression de la meta ALT custom de la featured image
+        delete_post_meta($post_ID, 'aam_featured_alt');
         // Mise à jour du post_content nettoyé
         remove_action('save_post', 'aam_process_post_content', 20);
         wp_update_post([
