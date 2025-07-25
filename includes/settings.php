@@ -58,26 +58,27 @@ function aam_settings_page_render() {
     }
     // Liste des paramètres supportés
     $params = [
-        'method' => ['label' => __('Méthode de génération ALT', 'auto-alt-magic'), 'type' => 'select', 'choices' => [
-            'titre' => __('Titre du post', 'auto-alt-magic'),
+        'method' => ['label' => __('Méthode ALT', 'auto-alt-magic'), 'type' => 'select', 'tooltip' => __('Définit la façon dont l’attribut ALT sera généré pour chaque image. Effet immédiat sur la featured image et galeries dynamiques. Pour les images du contenu, la modification s’applique à la prochaine sauvegarde du post.', 'auto-alt-magic'), 'choices' => [
+            'titre' => __('Titre de l’article', 'auto-alt-magic'),
             'nom_fichier' => __('Nom du fichier image', 'auto-alt-magic'),
-            'titre_image' => __('Titre de l\'image (media title)', 'auto-alt-magic'),
-            'texte_libre' => __('Texte libre avec balises dynamiques', 'auto-alt-magic'),
+            'titre_image' => __('Titre de l’image (média)', 'auto-alt-magic'),
+            'texte_libre' => __('Texte libre (balises dynamiques)', 'auto-alt-magic'),
         ]],
-        'text_libre' => ['label' => __('Texte libre', 'auto-alt-magic'), 'type' => 'text'],
-        'option_title_sync' => ['label' => __('Dupliquer ALT vers TITLE si manquant', 'auto-alt-magic'), 'type' => 'checkbox'],
+        'text_libre' => ['label' => __('Texte libre personnalisé', 'auto-alt-magic'), 'type' => 'text', 'tooltip' => __('Utilisez des balises dynamiques comme {{mot_cle}}, {{titre}}, etc. S’applique au prochain enregistrement du post.', 'auto-alt-magic')],
+        'option_title_sync' => ['label' => __('Copier ALT vers TITLE si vide', 'auto-alt-magic'), 'type' => 'checkbox', 'tooltip' => __('Si TITLE est absent, il sera automatiquement dupliqué à partir de l’ALT.', 'auto-alt-magic')],
         'alt_replace_mode' => [
-            'label' => __('Remplacement des attributs ALT', 'auto-alt-magic'),
+            'label' => __('Politique de remplacement ALT', 'auto-alt-magic'),
             'type' => 'select',
+            'tooltip' => __('Détermine quand le plugin remplace l’ALT existant. Effet immédiat sur la featured image et galeries dynamiques. Pour les images intégrés dans les contenus, nécessite une sauvegarde du post ou traitement par lot (payant).', 'auto-alt-magic'),
             'choices' => [
-                'none' => __('Ne rien remplacer', 'auto-alt-magic'),
+                'none' => __('Ne jamais modifier (préserve le natif)', 'auto-alt-magic'),
                 'empty' => __('Remplacer si ALT vide', 'auto-alt-magic'),
-                'all' => __('Remplacer tous les ALT', 'auto-alt-magic'),
+                'all' => __('Toujours remplacer', 'auto-alt-magic'),
                 'short20' => __('Remplacer si ALT < 20 caractères', 'auto-alt-magic'),
             ]
         ],
-        'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text'],
-        'suffix' => ['label' => __('Suffixe ALT', 'auto-alt-magic'), 'type' => 'text'],
+        'prefix' => ['label' => __('Préfixe ALT', 'auto-alt-magic'), 'type' => 'text', 'tooltip' => __('Ajoute un texte avant l’ALT généré.', 'auto-alt-magic')],
+        'suffix' => ['label' => __('Suffixe ALT', 'auto-alt-magic'), 'type' => 'text', 'tooltip' => __('Ajoute un texte après l’ALT généré.', 'auto-alt-magic')],
     ];
     // Gestion de la soumission du formulaire
     if (isset($_POST['aam_save_settings']) && check_admin_referer('aam_settings_save', 'aam_settings_nonce')) {
@@ -96,7 +97,8 @@ function aam_settings_page_render() {
         echo '<div class="notice notice-success is-dismissible"><p>' . __('Réglages enregistrés.', 'auto-alt-magic') . '</p></div>';
     }
     ?>
-    <div class="wrap aam-settings-tabs">
+    <div class="wrap aam-settings-tabs" style="padding-left:48px;">
+
         <h1><?php _e('Réglages Auto ALT Magic', 'auto-alt-magic'); ?></h1>
         <form method="post">
             <?php wp_nonce_field('aam_settings_save', 'aam_settings_nonce'); ?>
@@ -107,32 +109,37 @@ function aam_settings_page_render() {
             </h2>
             <?php $first = true; foreach ($post_types as $type => $obj): ?>
                 <div id="aam-tab-<?php echo esc_attr($type); ?>" class="aam-tab-content" style="<?php if (!$first) echo 'display:none;'; ?>margin-top:20px;">
-                    <h2><?php echo esc_html($obj->labels->singular_name); ?></h2>
-                    <table class="form-table">
+                    <table class="form-table aam-form-table-premium">
                         <?php foreach ($params as $key => $def): ?>
                         <tr valign="top"
-    <?php
-        $tr_class = '';
-        $tr_style = '';
-        if ($key === 'text_libre') {
-            $tr_class .= ' aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
-            // Masquer si méthode != texte_libre
-            if (($all_settings[$type]['method'] ?? '') !== 'texte_libre') {
-                $tr_style = 'display:none;';
-            }
-        }
-        if ($key === 'option_title_sync') {
-            $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
-            // Masquer si méthode = titre_image
-            if (($all_settings[$type]['method'] ?? '') === 'titre_image') {
-                $tr_style = 'display:none;';
-            }
-        }
-        if ($tr_class) echo ' class="' . trim($tr_class) . '"';
-        if ($tr_style) echo ' style="' . $tr_style . '"';
-    ?>
->
-                            <th scope="row"><?php echo esc_html($def['label']); ?></th>
+                            <?php
+                                $tr_class = '';
+                                $tr_style = '';
+                                if ($key === 'text_libre') {
+                                    $tr_class .= ' aam-row-text-libre aam-row-text-libre-' . esc_attr($type);
+                                    if (($all_settings[$type]['method'] ?? '') !== 'texte_libre') {
+                                        $tr_style = 'display:none;';
+                                    }
+                                }
+                                if ($key === 'option_title_sync') {
+                                    $tr_class .= ' aam-row-title-sync aam-row-title-sync-' . esc_attr($type);
+                                    if (($all_settings[$type]['method'] ?? '') === 'titre_image') {
+                                        $tr_style = 'display:none;';
+                                    }
+                                }
+                                if ($tr_class) echo ' class="' . trim($tr_class) . '"';
+                                if ($tr_style) echo ' style="' . $tr_style . '"';
+                            ?>
+                        >
+                            <th scope="row">
+                                <?php echo esc_html($def['label']); ?>
+                                <?php if (!empty($def['tooltip'])): ?>
+                                    <span class="aam-tooltip-icon" tabindex="0" aria-label="<?php echo esc_attr(strip_tags($def['tooltip'])); ?>">&#9432;
+                                        <span class="aam-tooltip-text"><?php echo esc_html($def['tooltip']); ?></span>
+                                    </span>
+                                <?php endif; ?>
+                            </th>
+    </th>
                             <td>
                                 <?php if ($def['type'] === 'select'): ?>
     <select name="aam[<?php echo esc_attr($type); ?>][<?php echo esc_attr($key); ?>]" class="aam-method-select" data-type="<?php echo esc_attr($type); ?>">
@@ -154,7 +161,12 @@ function aam_settings_page_render() {
                     </table>
                 </div>
             <?php $first = false; endforeach; ?>
-            <p><input type="submit" class="button-primary" name="aam_save_settings" value="<?php esc_attr_e('Enregistrer les réglages', 'auto-alt-magic'); ?>" /></p>
+            <p style="margin-top:32px;text-align:right;">
+    <button type="submit" class="button button-primary" name="aam_save_settings" style="font-size:16px;padding:10px 24px 10px 18px;display:inline-flex;align-items:center;gap:8px;background:#2271b1;border:none;">
+        <span class="dashicons dashicons-yes-alt" style="font-size:18px;vertical-align:middle;"></span>
+        <?php esc_html_e('Enregistrer les réglages', 'auto-alt-magic'); ?>
+    </button>
+</p>
         </form>
     </div>
     <script>
@@ -168,7 +180,51 @@ function aam_settings_page_render() {
     <style>
     .aam-settings-tabs .nav-tab-wrapper {margin-bottom:0;}
     .aam-tab-content {background:#fff; border:1px solid #ccd0d4; border-top:none; padding:20px;}
-    </style>
+    .aam-tooltip-icon {
+        display:inline-block;
+        margin-left:8px;
+        color:#2271b1;
+        background:#eaf6fb;
+        border-radius:50%;
+        width:18px;
+        height:18px;
+        text-align:center;
+        font-size:15px;
+        line-height:18px;
+        cursor:pointer;
+        position:relative;
+        vertical-align:middle;
+        transition:background 0.2s;
+    }
+    .aam-tooltip-icon:focus, .aam-tooltip-icon:hover {
+        background:#d0e7f4;
+        outline:none;
+    }
+    .aam-tooltip-text {
+        visibility:hidden;
+        opacity:0;
+        width:260px;
+        background:#222;
+        color:#fff;
+        text-align:left;
+        border-radius:6px;
+        padding:8px 12px;
+        position:absolute;
+        z-index:99;
+        bottom:125%;
+        left:50%;
+        margin-left:20px;
+        font-size:13px;
+        box-shadow:0 4px 14px rgba(0,0,0,0.14);
+        transition:opacity 0.2s;
+        pointer-events:none;
+    }
+    .aam-tooltip-icon:hover .aam-tooltip-text, .aam-tooltip-icon:focus .aam-tooltip-text {
+        visibility:visible;
+        opacity:1;
+        pointer-events:auto;
+    }
+</style>
     <script>
     jQuery(document).ready(function($) {
         // Affichage conditionnel sur changement de méthode
