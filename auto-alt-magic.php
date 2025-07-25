@@ -52,6 +52,7 @@ function aam_process_post_content($post_ID, $post, $update) {
 require_once AAM_PLUGIN_DIR . 'includes/featured-alt-filter.php';
 require_once AAM_PLUGIN_DIR . 'includes/alt-attributes-filter.php';
 require_once AAM_PLUGIN_DIR . 'includes/featured-alt-js.php';
+require_once AAM_PLUGIN_DIR . 'includes/woocommerce-gallery-filter.php';
 
 // Préparation des hooks pour actions admin uniquement
 if (is_admin()) {
