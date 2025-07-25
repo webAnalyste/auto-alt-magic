@@ -7,7 +7,11 @@ add_action('init', function() {
 
 function aam_filter_image_attributes($attr, $attachment, $size) {
     global $post;
-    if (!$post || !isset($post->ID)) return $attr;
+    if (!is_object($post) || !($post instanceof WP_Post) || !isset($post->ID)) return $attr;
+    if (!is_object($attachment) || !isset($attachment->ID)) {
+        if (defined('WP_DEBUG') && WP_DEBUG) error_log('[AAM] Contexte attachment anormal dans aam_filter_image_attributes (archive ?): ' . print_r($attachment, true));
+        return $attr;
+    }
     
     // SI mode global 'ne rien remplacer' OU reset natif, désactiver complètement le filtre
     $type = $post->post_type;

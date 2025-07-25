@@ -7,6 +7,11 @@
  * @return string
  */
 function aam_get_default_featured_alt($post) {
+    // Sécurité : vérifier que $post est bien un objet WP_Post valide
+    if (!is_object($post) || !($post instanceof WP_Post) || !isset($post->ID)) {
+        if (defined('WP_DEBUG') && WP_DEBUG) error_log('[AAM] Contexte post anormal dans aam_get_default_featured_alt (archive ?): ' . print_r($post, true));
+        return '';
+    }
     $type = $post->post_type;
     $type_settings = get_option('aam_settings_' . $type, []);
     // Correction : si tableau vide ou clé manquante, fallback global explicite

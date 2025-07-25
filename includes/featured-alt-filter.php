@@ -1,8 +1,13 @@
 <?php
 // Injection ALT/TITLE sur la featured image via filtre WordPress
 add_filter('post_thumbnail_html', function($html, $post_id, $post_thumbnail_id, $size, $attr) {
+    // Sécurité : vérifier que $post_id est numérique et valide
+    if (!is_numeric($post_id) || $post_id <= 0) return $html;
     $post = get_post($post_id);
-    if (!$post) return $html;
+    if (!is_object($post) || !($post instanceof WP_Post) || !isset($post->ID)) {
+        if (defined('WP_DEBUG') && WP_DEBUG) error_log('[AAM] Contexte post anormal dans post_thumbnail_html (archive ?): post_id=' . $post_id);
+        return $html;
+    }
     // Si reset natif demandé, ne toucher à rien : retour strict du HTML natif (aucune suppression, aucun nettoyage)
     if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
         return $html;
