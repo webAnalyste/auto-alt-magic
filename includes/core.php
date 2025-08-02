@@ -13,9 +13,11 @@ function aam_core_process_post($post_ID, $post) {
     // Sécurité : ne traiter que les post/page/produit publiés ou en brouillon
     if (!in_array($post->post_type, ['post', 'page', 'product'])) return;
     
-    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, désactiver le traitement
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, restaurer les ALT natifs
     $disable_alt_modification = get_post_meta($post_ID, 'aam_disable_alt_modification', true);
     if ($disable_alt_modification === '1') {
+        // Restaurer les ALT natifs des images du contenu
+        aam_restore_native_alt_in_content($post_ID, $post);
         return;
     }
     
@@ -234,6 +236,64 @@ function aam_core_process_post($post_ID, $post) {
         // Sécurité : update_post_meta pour éviter boucle
         
         // Désactive temporairement le hook save_post pour éviter boucle infinie
+        remove_action('save_post', 'aam_process_post_content', 20);
+        wp_update_post([
+            'ID' => $post_ID,
+            'post_content' => $new_content
+        ]);
+        add_action('save_post', 'aam_process_post_content', 20, 3);
+    }
+}
+
+/**
+ * Restaure les ALT natifs des images du contenu quand l'option "Ne pas modifier les ALT de ce contenu" est activée
+ * @param int $post_ID
+ * @param WP_Post $post
+ */
+function aam_restore_native_alt_in_content($post_ID, $post) {
+    $content = $post->post_content;
+    if (empty($content)) return;
+    
+    // Utilisation de DOMDocument pour parser le HTML
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    $imgs = $dom->getElementsByTagName('img');
+    if (!$imgs || $imgs->length === 0) return;
+    
+    $content_modified = false;
+    
+    foreach ($imgs as $img) {
+        $src = $img->getAttribute('src');
+        if (empty($src)) continue;
+        
+        // Récupérer l'ID de l'attachment depuis l'URL
+        $attachment_id = attachment_url_to_postid($src);
+        if (!$attachment_id) continue;
+        
+        // Récupérer l'ALT natif de la médiathèque
+        $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+        
+        // Restaurer l'ALT natif (ou le supprimer si vide)
+        if (!empty($native_alt)) {
+            $img->setAttribute('alt', esc_attr($native_alt));
+        } else {
+            $img->removeAttribute('alt');
+        }
+        
+        // Supprimer le title ajouté par le plugin (optionnel)
+        $img->removeAttribute('title');
+        
+        $content_modified = true;
+    }
+    
+    // Sauvegarder le contenu modifié si nécessaire
+    if ($content_modified) {
+        $new_content = $dom->saveHTML();
+        // Nettoyage de l'entête XML ajouté par DOMDocument
+        $new_content = preg_replace('/^<\?xml.*?\?>/', '', $new_content);
+        
+        // Désactiver temporairement le hook save_post pour éviter boucle infinie
         remove_action('save_post', 'aam_process_post_content', 20);
         wp_update_post([
             'ID' => $post_ID,
