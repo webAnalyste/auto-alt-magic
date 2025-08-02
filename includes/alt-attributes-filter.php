@@ -13,9 +13,19 @@ function aam_filter_image_attributes($attr, $attachment, $size) {
         return $attr;
     }
     
-    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, désactiver le filtre
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, forcer les ALT natifs
     $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
     if ($disable_alt_modification === '1') {
+        // Forcer l'ALT natif de la médiathèque (ou vide si aucun)
+        $native_alt = get_post_meta($attachment->ID, '_wp_attachment_image_alt', true);
+        if (!empty($native_alt)) {
+            $attr['alt'] = esc_attr($native_alt);
+        } else {
+            // Supprimer complètement l'attribut ALT s'il n'y en a pas de natif
+            unset($attr['alt']);
+        }
+        // Supprimer le title ajouté par le plugin
+        unset($attr['title']);
         return $attr;
     }
     

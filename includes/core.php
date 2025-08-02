@@ -247,53 +247,74 @@ function aam_core_process_post($post_ID, $post) {
  */
 function aam_restore_native_alt_in_content($post_ID, $post) {
     $content = $post->post_content;
-    if (empty($content)) return;
-    
-    // Utilisation de DOMDocument pour parser le HTML
-    libxml_use_internal_errors(true);
-    $dom = new DOMDocument('1.0', 'UTF-8');
-    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    $imgs = $dom->getElementsByTagName('img');
-    if (!$imgs || $imgs->length === 0) return;
-    
     $content_modified = false;
     
-    foreach ($imgs as $img) {
-        $src = $img->getAttribute('src');
-        if (empty($src)) continue;
+    // 1. RESTAURATION DES IMAGES DU CONTENU (post_content)
+    if (!empty($content)) {
+        // Utilisation de DOMDocument pour parser le HTML
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $imgs = $dom->getElementsByTagName('img');
         
-        // Récupérer l'ID de l'attachment depuis l'URL
-        $attachment_id = attachment_url_to_postid($src);
-        if (!$attachment_id) continue;
-        
-        // Récupérer l'ALT natif de la médiathèque
-        $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
-        
-        // Restaurer l'ALT natif (ou le supprimer si vide)
-        if (!empty($native_alt)) {
-            $img->setAttribute('alt', esc_attr($native_alt));
-        } else {
-            $img->removeAttribute('alt');
+        if ($imgs && $imgs->length > 0) {
+            foreach ($imgs as $img) {
+                $src = $img->getAttribute('src');
+                if (empty($src)) continue;
+                
+                $attachment_id = attachment_url_to_postid($src);
+                if (!$attachment_id) continue;
+                
+                $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+                
+                if (!empty($native_alt)) {
+                    $img->setAttribute('alt', esc_attr($native_alt));
+                } else {
+                    $img->removeAttribute('alt');
+                }
+                
+                $img->removeAttribute('title');
+                $content_modified = true;
+            }
+            
+            // Sauvegarder le contenu modifié si nécessaire
+            if ($content_modified) {
+                $new_content = $dom->saveHTML();
+                // Nettoyage de l'entête XML ajouté par DOMDocument
+                $new_content = preg_replace('/^<\?xml.*?\?>/', '', $new_content);
+                
+                // Désactiver temporairement le hook save_post pour éviter boucle infinie
+                remove_action('save_post', 'aam_process_post_content', 20);
+                wp_update_post([
+                    'ID' => $post_ID,
+                    'post_content' => $new_content
+                ]);
+                add_action('save_post', 'aam_process_post_content', 20, 3);
+            }
         }
-        
-        // Supprimer le title ajouté par le plugin (optionnel)
-        $img->removeAttribute('title');
-        
-        $content_modified = true;
     }
     
-    // Sauvegarder le contenu modifié si nécessaire
-    if ($content_modified) {
-        $new_content = $dom->saveHTML();
-        // Nettoyage de l'entête XML ajouté par DOMDocument
-        $new_content = preg_replace('/^<\?xml.*?\?>/', '', $new_content);
+    // 2. RESTAURATION SPÉCIFIQUE WOOCOMMERCE : Featured image et galerie produit
+    if ($post->post_type === 'product') {
+        // Restaurer l'ALT de la featured image (image principale du produit)
+        $featured_image_id = get_post_thumbnail_id($post_ID);
+        if ($featured_image_id) {
+            $native_featured_alt = get_post_meta($featured_image_id, '_wp_attachment_image_alt', true);
+            // Note: La featured image est gérée par les filtres, pas besoin de modification directe ici
+        }
         
-        // Désactiver temporairement le hook save_post pour éviter boucle infinie
-        remove_action('save_post', 'aam_process_post_content', 20);
-        wp_update_post([
-            'ID' => $post_ID,
-            'post_content' => $new_content
-        ]);
-        add_action('save_post', 'aam_process_post_content', 20, 3);
+        // Restaurer les ALT de la galerie WooCommerce (images supplémentaires)
+        $gallery_ids = get_post_meta($post_ID, '_product_image_gallery', true);
+        if (!empty($gallery_ids)) {
+            $gallery_ids = explode(',', $gallery_ids);
+            foreach ($gallery_ids as $gallery_id) {
+                $gallery_id = intval($gallery_id);
+                if ($gallery_id > 0) {
+                    $native_gallery_alt = get_post_meta($gallery_id, '_wp_attachment_image_alt', true);
+                    // Note: Les images de galerie sont gérées par les filtres et JavaScript, pas besoin de modification directe ici
+                    // La désactivation des filtres suffit pour afficher les ALT natifs
+                }
+            }
+        }
     }
 }
