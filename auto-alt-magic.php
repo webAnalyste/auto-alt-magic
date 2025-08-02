@@ -44,6 +44,13 @@ function aam_process_post_content($post_ID, $post, $update) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_ID)) return;
     if ($post->post_type !== 'post' && $post->post_type !== 'page' && $post->post_type !== 'product') return;
+    
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, ne rien faire
+    $disable_alt_modification = get_post_meta($post_ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        return; // Arrêt complet du traitement
+    }
+    
     // Traitement du contenu (core.php)
     aam_core_process_post($post_ID, $post);
 }
