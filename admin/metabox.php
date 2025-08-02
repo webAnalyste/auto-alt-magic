@@ -11,6 +11,23 @@ require_once AAM_PLUGIN_DIR . 'includes/aam_get_default_featured_alt.php';
 function aam_magic_metabox($post) {
     // Sécurité nonce
     wp_nonce_field('aam_magic_box_save', 'aam_magic_box_nonce');
+    
+    // Récupération de l'option "Ne pas modifier les ALT de ce contenu"
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    $is_disabled = ($disable_alt_modification === '1');
+    
+    // OPTION PRINCIPALE : Ne pas modifier les ALT de ce contenu
+    echo '<div class="aam-disable-option" style="margin-bottom:20px;padding:12px;background:#f9f9f9;border-left:4px solid #0073aa;">';
+    echo '<label style="font-weight:bold;display:block;margin-bottom:8px;">';
+    echo '<input type="checkbox" name="aam_disable_alt_modification" value="1"' . checked($is_disabled, true, false) . ' class="aam-disable-checkbox" /> ';
+    echo __('Ne pas modifier les ALT de ce contenu', 'auto-alt-magic');
+    echo '</label>';
+    echo '<p class="description" style="margin:0;font-size:12px;color:#666;">' . __('Si activé, toutes les images (featured, contenu, galeries) de ce contenu afficheront uniquement leurs ALT natifs enregistrés dans la médiathèque, sans aucune modification automatique.', 'auto-alt-magic') . '</p>';
+    echo '</div>';
+    
+    // SECTION CONDITIONNELLE : Options de génération ALT (masquée si désactivation active)
+    echo '<div class="aam-alt-options" style="' . ($is_disabled ? 'display:none;' : '') . '">';
+    
     // Valeur actuelle du ALT manuel (champ unique)
     $featured_alt = get_post_meta($post->ID, 'aam_featured_alt', true);
     // Valeur par défaut (template global du post type)
@@ -19,28 +36,43 @@ function aam_magic_metabox($post) {
     if (empty($featured_alt)) {
         $featured_alt = $default_alt;
     }
-    echo '<p><strong>' . __('ALT de l’image à la une', 'auto-alt-magic') . '</strong><br />';
+    
+    echo '<p><strong>' . __('ALT de l\'image à la une', 'auto-alt-magic') . '</strong><br />';
     echo '<input type="text" name="aam_featured_alt" value="' . esc_attr($featured_alt) . '" style="width:100%" placeholder="ALT généré automatiquement selon le type de contenu" readonly class="aam-featured-alt-input" />';
     echo '<br /><label><input type="checkbox" class="aam-edit-featured-alt" /> ' . __('Éditer le champ ALT manuellement', 'auto-alt-magic') . '</label></p>';
+    
     // Affichage valeur globale si personnalisé
     if (!empty($featured_alt) && $featured_alt !== $default_alt) {
-        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
+        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
     } else {
-        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
+        echo '<div class="aam-default-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Valeur globale par défaut :', 'auto-alt-magic') . '</span> <span class="aam-default-alt-txt">' . esc_html($default_alt) . '</span></div>';
     }
+    
     // Affichage valeur personnalisée précédente (après reset)
-    echo '<div class="aam-previous-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Ancienne valeur personnalisée :', 'auto-alt-magic') . '</span> <span class="aam-previous-alt-txt"></span></div>';
+    echo '<div class="aam-previous-alt-info" style="margin-bottom:6px;color:#888;font-size:12px;display:none"><span style="font-weight:bold">' . __('Ancienne valeur personnalisée :', 'auto-alt-magic') . '</span> <span class="aam-previous-alt-txt"></span></div>';
     echo '<p class="description">' . __('Ce champ est généré automatiquement selon les réglages globaux du type de contenu, mais peut être écrasé ici par un texte libre (prioritaire).', 'auto-alt-magic') . '</p>';
 
     // Bouton reset ALT manuel
     echo '<button type="button" class="button aam-reset-featured-alt" data-default-alt="' . esc_attr($default_alt) . '">' . __('Réinitialiser avec la valeur globale', 'auto-alt-magic') . '</button>';
-    // Nouveau bouton reset natif
-    echo '<button type="button" class="button button-secondary aam-reset-native-alt" style="margin-left:8px">' . __('Restaurer ALT/TITLE natifs (médiathèque)', 'auto-alt-magic') . '</button>';
+
+    echo '</div>'; // Fin de aam-alt-options
 
 // Injection JS robuste UX
 ?>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
+  // Gestion de l'option "Ne pas modifier les ALT de ce contenu"
+  document.querySelectorAll(".aam-disable-checkbox").forEach(function(checkbox){
+    var altOptions = checkbox.closest('.postbox').querySelector('.aam-alt-options');
+    checkbox.addEventListener("change",function(){
+      if(checkbox.checked){
+        altOptions.style.display = 'none';
+      } else {
+        altOptions.style.display = '';
+      }
+    });
+  });
+  
   document.querySelectorAll(".aam-reset-featured-alt").forEach(function(btn){
     btn.addEventListener("click",function(){
       var box = btn.closest('.postbox');
@@ -59,30 +91,7 @@ document.addEventListener("DOMContentLoaded",function(){
       }
     });
   });
-  // Bouton reset natif ALT/TITLE
-  document.querySelectorAll(".aam-reset-native-alt").forEach(function(btn){
-    btn.addEventListener("click",function(){
-      if(!confirm('Cette action supprimera tout ALT/TITLE personnalisé de ce post (featured image) et restaurera les valeurs natives de la médiathèque. Continuer ?')) return;
-      var box = btn.closest('.postbox');
-      var input = box.querySelector('input[name="aam_featured_alt"]');
-      if(input) {
-        input.value = '';
-        input.setAttribute('readonly','readonly');
-      }
-      // Ajout d’un champ caché pour signaler le reset au PHP
-      var form = btn.closest('form');
-      if(form && !form.querySelector('input[name="aam_reset_native_alt"]')) {
-        var hidden = document.createElement('input');
-        hidden.type = 'hidden';
-        hidden.name = 'aam_reset_native_alt';
-        hidden.value = '1';
-        form.appendChild(hidden);
-      }
-      // Optionnel : feedback visuel
-      btn.textContent = 'ALT/TITLE natifs restaurés (sauvegarder le post)';
-      btn.disabled = true;
-    });
-  });
+  
   document.querySelectorAll(".aam-edit-featured-alt").forEach(function(checkbox){
     var input = checkbox.closest('p').querySelector('input[name="aam_featured_alt"]');
     var box = checkbox.closest('.postbox');
@@ -107,17 +116,18 @@ document.addEventListener("DOMContentLoaded",function(){
 }
 
 add_action('save_post', function($post_id) {
-    // Si demande de reset natif ALT/TITLE (champ caché JS)
-    if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
-        delete_post_meta($post_id, 'aam_featured_alt');
-        delete_post_meta($post_id, 'aam_featured_title');
-        // Optionnel : supprimer aussi tout autre meta liée à l'injection ALT/TITLE
-        return;
-    }
     // Sécurité nonce et droits
     if (!isset($_POST['aam_magic_box_nonce']) || !wp_verify_nonce($_POST['aam_magic_box_nonce'], 'aam_magic_box_save')) return;
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
+    
+    // Sauvegarde de l'option "Ne pas modifier les ALT de ce contenu"
+    if (isset($_POST['aam_disable_alt_modification']) && $_POST['aam_disable_alt_modification'] == '1') {
+        update_post_meta($post_id, 'aam_disable_alt_modification', '1');
+    } else {
+        delete_post_meta($post_id, 'aam_disable_alt_modification');
+    }
+    
     // Sauvegarde des paramètres contextuels
     $fields = [
         'aam_focus_keyword',
@@ -136,7 +146,7 @@ add_action('save_post', function($post_id) {
             $value = is_string($_POST[$field]) ? sanitize_text_field($_POST[$field]) : intval($_POST[$field]);
             update_post_meta($post_id, $field, $value);
         } else {
-            // Si case décochée, on supprime la meta pour fallback sur l’option globale
+            // Si case décochée, on supprime la meta pour fallback sur l'option globale
             delete_post_meta($post_id, $field);
         }
     }
