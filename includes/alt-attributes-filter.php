@@ -3,6 +3,14 @@
 // Hook conditionnel : ne s'attacher que si nécessaire
 add_action('init', function() {
     add_filter('wp_get_attachment_image_attributes', 'aam_filter_image_attributes', 20, 3);
+    
+    // FILTRES WOOCOMMERCE OFFICIELS selon le code source
+    if (class_exists('WooCommerce')) {
+        // Featured image
+        add_filter('woocommerce_single_product_image_thumbnail_html', 'aam_filter_woocommerce_image_html', 10, 2);
+        // Galerie d'images (thumbnails)
+        add_filter('woocommerce_gallery_image_html_attachment_image_params', 'aam_filter_woocommerce_gallery_params', 10, 4);
+    }
 });
 
 function aam_filter_image_attributes($attr, $attachment, $size) {
@@ -45,4 +53,54 @@ function aam_filter_image_attributes($attr, $attachment, $size) {
         }
     }
     return $attr;
+}
+
+/**
+ * Filtre WooCommerce officiel pour les images produit
+ * Restaure les ALT natifs si l'option est activée
+ */
+function aam_filter_woocommerce_image_html($html, $post_thumbnail_id) {
+    global $post;
+    if (!is_object($post) || !isset($post->ID) || $post->post_type !== 'product') {
+        return $html;
+    }
+    
+    // Vérifier si l'option de désactivation est activée
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        // Récupérer l'ALT natif de l'image
+        $native_alt = get_post_meta($post_thumbnail_id, '_wp_attachment_image_alt', true);
+        
+        // Remplacer l'ALT dans le HTML par l'ALT natif
+        $html = preg_replace('/alt="[^"]*"/', 'alt="' . esc_attr($native_alt) . '"', $html);
+        // Supprimer l'attribut title
+        $html = preg_replace('/title="[^"]*"/', '', $html);
+    }
+    
+    return $html;
+}
+
+/**
+ * Filtre WooCommerce pour les paramètres des images de galerie
+ * Restaure les ALT natifs si l'option est activée
+ */
+function aam_filter_woocommerce_gallery_params($params, $attachment_id, $image_size, $main_image) {
+    global $post;
+    if (!is_object($post) || !isset($post->ID) || $post->post_type !== 'product') {
+        return $params;
+    }
+    
+    // Vérifier si l'option de désactivation est activée
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        // Récupérer l'ALT natif de l'image
+        $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+        
+        // Forcer l'ALT natif dans les paramètres
+        $params['alt'] = $native_alt ? $native_alt : '';
+        // Supprimer l'attribut title
+        unset($params['title']);
+    }
+    
+    return $params;
 }
