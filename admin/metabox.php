@@ -122,8 +122,19 @@ add_action('save_post', function($post_id) {
     if (!current_user_can('edit_post', $post_id)) return;
     
     // Sauvegarde de l'option "Ne pas modifier les ALT de ce contenu"
-    if (isset($_POST['aam_disable_alt_modification']) && $_POST['aam_disable_alt_modification'] == '1') {
+    $was_disabled = get_post_meta($post_id, 'aam_disable_alt_modification', true) === '1';
+    $is_now_disabled = isset($_POST['aam_disable_alt_modification']) && $_POST['aam_disable_alt_modification'] == '1';
+    
+    if ($is_now_disabled) {
         update_post_meta($post_id, 'aam_disable_alt_modification', '1');
+        // Si l'option vient d'être activée, déclencher immédiatement la restauration des ALT natifs
+        if (!$was_disabled) {
+            require_once AAM_PLUGIN_DIR . 'includes/core.php';
+            $post = get_post($post_id);
+            if ($post && function_exists('aam_restore_native_alt_in_content')) {
+                aam_restore_native_alt_in_content($post_id, $post);
+            }
+        }
     } else {
         delete_post_meta($post_id, 'aam_disable_alt_modification');
     }
