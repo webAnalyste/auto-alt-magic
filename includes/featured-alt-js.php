@@ -13,6 +13,13 @@ add_action('wp_head', function() {
     // Test de base : vérifier que le hook wp_head fonctionne
     echo "<!-- AAM: Hook wp_head actif pour post ID: {$post->ID} -->\n";
     
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, désactiver l'injection JS
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        echo "<!-- AAM: Injection ALT désactivée pour ce contenu -->\n";
+        return;
+    }
+    
     // Désactivation JS si reset natif OU mode 'ne rien remplacer' (par type de contenu)
     $type = $post->post_type;
     $type_settings = get_option('aam_settings_' . $type, []);

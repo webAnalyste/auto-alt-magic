@@ -13,6 +13,12 @@ function aam_filter_image_attributes($attr, $attachment, $size) {
         return $attr;
     }
     
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, désactiver le filtre
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        return $attr;
+    }
+    
     // SI mode global 'ne rien remplacer' OU reset natif, désactiver complètement le filtre
     $type = $post->post_type;
     $type_settings = get_option('aam_settings_' . $type, []);

@@ -8,7 +8,14 @@ add_filter('post_thumbnail_html', function($html, $post_id, $post_thumbnail_id, 
         if (defined('WP_DEBUG') && WP_DEBUG) error_log('[AAM] Contexte post anormal dans post_thumbnail_html (archive ?): post_id=' . $post_id);
         return $html;
     }
-    // Si reset natif demandé, ne toucher à rien : retour strict du HTML natif (aucune suppression, aucun nettoyage)
+    
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, retourner le HTML natif
+    $disable_alt_modification = get_post_meta($post_id, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        return $html;
+    }
+    
+    // Si reset natif demandé, ne toucher à rien : retour strict du HTML natif (aucune suppression, aucun nettoyage)
     if (isset($_POST['aam_reset_native_alt']) && $_POST['aam_reset_native_alt'] == '1') {
         return $html;
     }
