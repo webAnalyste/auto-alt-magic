@@ -127,13 +127,12 @@ add_action('save_post', function($post_id) {
     
     if ($is_now_disabled) {
         update_post_meta($post_id, 'aam_disable_alt_modification', '1');
-        // Si l'option vient d'être activée, déclencher immédiatement la restauration des ALT natifs
-        if (!$was_disabled) {
-            require_once AAM_PLUGIN_DIR . 'includes/core.php';
-            $post = get_post($post_id);
-            if ($post && function_exists('aam_restore_native_alt_in_content')) {
-                aam_restore_native_alt_in_content($post_id, $post);
-            }
+        // TOUJOURS déclencher la restauration des ALT natifs quand l'option est activée
+        // (même si elle était déjà activée, pour forcer la restauration)
+        require_once AAM_PLUGIN_DIR . 'includes/core.php';
+        $post = get_post($post_id);
+        if ($post && function_exists('aam_restore_native_alt_in_content')) {
+            aam_restore_native_alt_in_content($post_id, $post);
         }
     } else {
         delete_post_meta($post_id, 'aam_disable_alt_modification');

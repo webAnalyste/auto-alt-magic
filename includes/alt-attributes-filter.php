@@ -3,6 +3,12 @@
 // Hook conditionnel : ne s'attacher que si nécessaire
 add_action('init', function() {
     add_filter('wp_get_attachment_image_attributes', 'aam_filter_image_attributes', 20, 3);
+    
+    // Filtres spécifiques WooCommerce pour s'assurer que les ALT natifs sont forcés
+    if (class_exists('WooCommerce')) {
+        add_filter('woocommerce_single_product_image_thumbnail_html', 'aam_filter_woocommerce_image_html', 20, 2);
+        add_filter('woocommerce_single_product_image_html', 'aam_filter_woocommerce_image_html', 20, 2);
+    }
 });
 
 function aam_filter_image_attributes($attr, $attachment, $size) {
@@ -18,6 +24,11 @@ function aam_filter_image_attributes($attr, $attachment, $size) {
     if ($disable_alt_modification === '1') {
         // Forcer l'ALT natif de la médiathèque (ou vide si aucun)
         $native_alt = get_post_meta($attachment->ID, '_wp_attachment_image_alt', true);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[AAM DEBUG] Filtre attributs - Post ID: ' . $post->ID . ', Attachment ID: ' . $attachment->ID . ', ALT natif: "' . $native_alt . '"');
+        }
+        
         if (!empty($native_alt)) {
             $attr['alt'] = esc_attr($native_alt);
         } else {
@@ -55,4 +66,47 @@ function aam_filter_image_attributes($attr, $attachment, $size) {
         }
     }
     return $attr;
+}
+
+/**
+ * Filtre spécifique pour le HTML des images WooCommerce
+ * Force les ALT natifs quand l'option "Ne pas modifier les ALT de ce contenu" est activée
+ */
+function aam_filter_woocommerce_image_html($html, $attachment_id) {
+    global $post;
+    if (!is_object($post) || !($post instanceof WP_Post) || !isset($post->ID)) return $html;
+    
+    // Vérifier si l'option de désactivation est activée
+    $disable_alt_modification = get_post_meta($post->ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification !== '1') return $html;
+    
+    // Récupérer l'ALT natif de l'image
+    $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+    
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('[AAM DEBUG] Filtre WooCommerce HTML - Post ID: ' . $post->ID . ', Attachment ID: ' . $attachment_id . ', ALT natif: "' . $native_alt . '"');
+    }
+    
+    // Utiliser DOMDocument pour modifier le HTML proprement
+    libxml_use_internal_errors(true);
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    $imgs = $dom->getElementsByTagName('img');
+    
+    foreach ($imgs as $img) {
+        // Forcer l'ALT natif ou supprimer l'attribut s'il n'y en a pas
+        if (!empty($native_alt)) {
+            $img->setAttribute('alt', esc_attr($native_alt));
+        } else {
+            $img->removeAttribute('alt');
+        }
+        // Supprimer le title ajouté par le plugin
+        $img->removeAttribute('title');
+    }
+    
+    $new_html = $dom->saveHTML();
+    // Nettoyage de l'entête XML
+    $new_html = preg_replace('/^<\?xml.*?\?>/', '', $new_html);
+    
+    return $new_html;
 }

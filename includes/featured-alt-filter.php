@@ -9,9 +9,32 @@ add_filter('post_thumbnail_html', function($html, $post_id, $post_thumbnail_id, 
         return $html;
     }
     
-    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, retourner le HTML natif
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, forcer l'ALT natif
     $disable_alt_modification = get_post_meta($post_id, 'aam_disable_alt_modification', true);
     if ($disable_alt_modification === '1') {
+        // Récupérer l'ALT natif de la featured image
+        $native_alt = get_post_meta($post_thumbnail_id, '_wp_attachment_image_alt', true);
+        
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[AAM DEBUG] Featured filter - Post ID: ' . $post_id . ', Thumbnail ID: ' . $post_thumbnail_id . ', ALT natif: "' . $native_alt . '"');
+        }
+        
+        // Forcer l'ALT natif dans le HTML
+        if (!empty($native_alt)) {
+            // Remplacer ou ajouter l'attribut ALT avec la valeur native
+            if (preg_match('/alt=["\'].*?["\']/', $html)) {
+                $html = preg_replace('/alt=["\'].*?["\']/', 'alt="' . esc_attr($native_alt) . '"', $html);
+            } else {
+                $html = preg_replace('/<img/', '<img alt="' . esc_attr($native_alt) . '"', $html);
+            }
+        } else {
+            // Supprimer l'attribut ALT s'il n'y a pas d'ALT natif
+            $html = preg_replace('/\s*alt=["\'].*?["\']/', '', $html);
+        }
+        
+        // Supprimer l'attribut title ajouté par le plugin
+        $html = preg_replace('/\s*title=["\'].*?["\']/', '', $html);
+        
         return $html;
     }
     

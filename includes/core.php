@@ -246,6 +246,10 @@ function aam_core_process_post($post_ID, $post) {
  * @param WP_Post $post
  */
 function aam_restore_native_alt_in_content($post_ID, $post) {
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('[AAM DEBUG] Début restauration ALT natifs pour post ID: ' . $post_ID . ' (type: ' . $post->post_type . ')');
+    }
+    
     $content = $post->post_content;
     $content_modified = false;
     
@@ -266,6 +270,10 @@ function aam_restore_native_alt_in_content($post_ID, $post) {
                 if (!$attachment_id) continue;
                 
                 $native_alt = get_post_meta($attachment_id, '_wp_attachment_image_alt', true);
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[AAM DEBUG] Image trouvée - ID: ' . $attachment_id . ', ALT natif: "' . $native_alt . '"');
+                }
                 
                 if (!empty($native_alt)) {
                     $img->setAttribute('alt', esc_attr($native_alt));
