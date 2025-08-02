@@ -13,8 +13,11 @@ function aam_core_process_post($post_ID, $post) {
     // Sécurité : ne traiter que les post/page/produit publiés ou en brouillon
     if (!in_array($post->post_type, ['post', 'page', 'product'])) return;
     
-    // Note : La vérification de l'option 'aam_disable_alt_modification' est maintenant faite en amont
-    // dans auto-alt-magic.php pour éviter tout traitement si l'option est activée
+    // VÉRIFICATION PRIORITAIRE : Si "Ne pas modifier les ALT de ce contenu" est activé, ne rien faire
+    $disable_alt_modification = get_post_meta($post_ID, 'aam_disable_alt_modification', true);
+    if ($disable_alt_modification === '1') {
+        return; // Arrêt complet du traitement, même si appelé directement
+    }
     
     // SI mode global 'ne rien remplacer' OU reset natif, désactiver complètement le traitement du post_content
     $type = $post->post_type;
